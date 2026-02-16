@@ -9,6 +9,7 @@ on:
 env:
   DOCKER_IMAGE: shadrach85/restaurant-frontend
   SERVICE_NAME: frontend
+  VALUES_FILE: helm/restaurant-system/values-test.yaml
 
 jobs:
   build-and-test:
@@ -90,13 +91,24 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           path: infrastructure
 
-      - name: Update deployment manifest
+      - name: Update Helm values
         run: |
           cd infrastructure
-          # Update the image tag in the deployment manifest
-          sed -i "s|image: ${{ env.DOCKER_IMAGE }}:.*|image: ${{ env.DOCKER_IMAGE }}:${{ needs.build-and-push-docker.outputs.short_sha }}|g" kubernetes/frontend-deployment.yaml
+          # Update the frontend image tag in Helm values file using yq
+          # Install yq if not available
+          if ! command -v yq &> /dev/null; then
+            wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            chmod +x /usr/local/bin/yq
+          fi
 
-          # Commit and push the change
+          # Update frontend.image.tag in values file
+          yq -i '.frontend.image.tag = "${{ needs.build-and-push-docker.outputs.short_sha }}"' ${{ env.VALUES_FILE }}
+
+          echo "Updated frontend image tag to: ${{ needs.build-and-push-docker.outputs.short_sha }}"
+
+      - name: Commit and push
+        run: |
+          cd infrastructure
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add .
@@ -109,4 +121,4 @@ jobs:
           echo "- **Service**: ${{ env.SERVICE_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image**: ${{ env.DOCKER_IMAGE }}:${{ needs.build-and-push-docker.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **ArgoCD will automatically sync the deployment**" >> $GITHUB_STEP_SUMMARY
+          echo "- **Helm values updated - ArgoCD will automatically sync**" >> $GITHUB_STEP_SUMMARY
