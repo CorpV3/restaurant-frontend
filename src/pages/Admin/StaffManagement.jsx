@@ -66,6 +66,9 @@ export default function StaffManagement() {
         if (staffType === 'chef') {
           await staffAPI.createChef(data);
           toast.success('Chef account created successfully!');
+        } else if (staffType === 'staff') {
+          await staffAPI.createStaff(data);
+          toast.success('Staff account created successfully!');
         } else {
           await staffAPI.createCustomer(data);
           toast.success('Customer account created successfully!');
@@ -114,6 +117,8 @@ export default function StaffManagement() {
         await staffAPI.deleteChef(staffMember.id);
       } else if (role === 'CUSTOMER') {
         await staffAPI.deleteCustomer(staffMember.id);
+      } else if (role === 'STAFF') {
+        await staffAPI.deleteStaff(staffMember.id);
       } else {
         toast.error(`Cannot delete user with role: ${staffMember.role}`);
         return;
@@ -314,7 +319,7 @@ export default function StaffManagement() {
                 {!editingStaff && (
                   <div>
                     <label className="block text-sm font-medium mb-2">Staff Type</label>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-wrap">
                       <label className="flex items-center">
                         <input
                           type="radio"
@@ -325,6 +330,17 @@ export default function StaffManagement() {
                           className="mr-2"
                         />
                         <span>Chef</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="staffType"
+                          value="staff"
+                          checked={staffType === 'staff'}
+                          onChange={(e) => setStaffType(e.target.value)}
+                          className="mr-2"
+                        />
+                        <span>Staff (POS Cashier)</span>
                       </label>
                       <label className="flex items-center">
                         <input

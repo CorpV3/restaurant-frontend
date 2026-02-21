@@ -112,10 +112,12 @@ export const staffAPI = {
   listStaff: (restaurantId, role) => authApi.get(`/api/v1/auth/staff/${restaurantId}`, { params: { role } }),
   createChef: (data) => authApi.post('/api/v1/auth/chef', data),
   createCustomer: (data) => authApi.post('/api/v1/auth/customer', data),
+  createStaff: (data) => authApi.post('/api/v1/auth/staff', data),
   updateStaff: (userId, data) => authApi.patch(`/api/v1/auth/${userId}`, data),
   toggleStatus: (userId) => authApi.patch(`/api/v1/auth/${userId}/toggle-status`),
   deleteChef: (chefId) => authApi.delete(`/api/v1/auth/chef/${chefId}`),
   deleteCustomer: (customerId) => authApi.delete(`/api/v1/auth/customer/${customerId}`),
+  deleteStaff: (staffId) => authApi.delete(`/api/v1/auth/staff/${staffId}`),
 };
 
 // Restaurant API - uses Restaurant Service

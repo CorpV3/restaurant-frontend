@@ -401,20 +401,21 @@ export default function UserManagement() {
                       <option value="master_admin">Master Admin</option>
                       <option value="restaurant_admin">Restaurant Admin</option>
                       <option value="chef">Chef</option>
+                      <option value="staff">Staff (POS Cashier)</option>
                       <option value="customer">Customer</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Assign Restaurant {(formData.role === 'restaurant_admin' || formData.role === 'chef') && '*'}
+                      Assign Restaurant {(formData.role === 'restaurant_admin' || formData.role === 'chef' || formData.role === 'staff') && '*'}
                     </label>
                     <select
                       name="restaurant_id"
                       value={formData.restaurant_id}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required={formData.role === 'restaurant_admin' || formData.role === 'chef'}
+                      required={formData.role === 'restaurant_admin' || formData.role === 'chef' || formData.role === 'staff'}
                       disabled={formData.role === 'master_admin' || formData.role === 'customer'}
                     >
                       <option value="">-- Select Restaurant --</option>
