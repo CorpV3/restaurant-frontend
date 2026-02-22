@@ -188,6 +188,10 @@ export const orderAPI = {
   get: (orderId) => restaurantApi.get(`/api/v1/orders/${orderId}`),
   create: (data) => restaurantApi.post('/api/v1/orders', data),
   updateStatus: (orderId, status) => restaurantApi.patch(`/api/v1/orders/${orderId}/status`, { status }),
+  updateStatusWithPayment: (orderId, status, paymentMethod) =>
+    restaurantApi.patch(`/api/v1/orders/${orderId}/status`, { status, payment_method: paymentMethod }),
   cancel: (orderId) => restaurantApi.delete(`/api/v1/orders/${orderId}`),
   generateReceipt: (orderId) => restaurantApi.post(`/api/v1/orders/${orderId}/generate-receipt`),
+  getReports: (restaurantId, params) =>
+    restaurantApi.get(`/api/v1/restaurants/${restaurantId}/analytics/reports`, { params }),
 };
