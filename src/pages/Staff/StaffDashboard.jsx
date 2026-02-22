@@ -16,7 +16,8 @@ const STATUS_COLORS = {
 
 function playOrderAlert() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioCtx = window.AudioContext || window['webkitAudioContext'];
+    const ctx = new AudioCtx();
     [0, 0.15, 0.3].forEach((delay, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -47,7 +48,8 @@ export default function StaffDashboard() {
       if (showRefreshing) setRefreshing(true);
       const response = await orderAPI.list(user.restaurant_id, { limit: 100 });
       const active = response.data.filter(
-        o => !['completed', 'cancelled'].includes(o.status)
+        o => !['completed', 'cancelled'].includes(o.status) &&
+             (o.order_type === 'table' || o.order_type === 'TABLE' || !o.order_type)
       );
       setOrders(active);
       active.forEach(o => knownOrderIds.current.add(o.id));
