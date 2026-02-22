@@ -32,6 +32,9 @@ import CustomerInsights from './pages/Admin/CustomerInsights';
 // Chef Pages
 import KitchenDashboard from './pages/Kitchen/KitchenDashboard';
 
+// Staff Pages
+import StaffDashboard from './pages/Staff/StaffDashboard';
+
 // Master Admin Pages
 import MasterAdminDashboard from './pages/MasterAdmin/MasterAdminDashboard';
 import UserManagement from './pages/MasterAdmin/UserManagement';
@@ -65,6 +68,8 @@ function App() {
         return '/admin';
       case 'chef':
         return '/kitchen';
+      case 'staff':
+        return '/staff';
       case 'customer':
       default:
         return '/customer/orders';
@@ -201,6 +206,16 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['chef']}>
               <KitchenDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Staff Routes */}
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute allowedRoles={['staff']}>
+              <StaffDashboard />
             </ProtectedRoute>
           }
         />
