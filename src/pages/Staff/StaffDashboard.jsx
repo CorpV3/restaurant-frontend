@@ -131,9 +131,9 @@ function OrderCard({ order, onServe, onComplete, highlight, isNew }) {
 
       <div className="mb-3 space-y-1">
         {order.items?.slice(0, 4).map((item, idx) => (
-          <div key={idx} className="flex justify-between text-sm">
-            <span className="text-gray-700">{item.quantity}x {item.name || item.menu_item_name}</span>
-            <span className="text-gray-500">£{(item.price * item.quantity).toFixed(2)}</span>
+          <div key={idx} className="flex justify-between text-sm gap-2">
+            <span className="text-gray-700 truncate">{item.quantity}x {item.name || item.menu_item_name}</span>
+            <span className="text-gray-500 shrink-0">£{(item.price * item.quantity).toFixed(2)}</span>
           </div>
         ))}
         {order.items?.length > 4 && (
@@ -141,29 +141,36 @@ function OrderCard({ order, onServe, onComplete, highlight, isNew }) {
         )}
       </div>
 
-      <div className="flex justify-between items-center pt-3 border-t">
-        <span className="font-bold text-gray-900 flex items-center gap-1">
-          <FiDollarSign className="text-green-600" />
-          {total.toFixed(2)}
-        </span>
-        <div className="flex gap-2">
-          {order.status === 'ready' && (
-            <button onClick={() => onServe(order.id)} className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Serve
-            </button>
-          )}
-          {order.status === 'served' && (
-            <button onClick={() => onComplete(order.id)} className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-1">
-              <FiCheck size={12} /> Paid
-            </button>
-          )}
+      <div className="pt-3 border-t space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-gray-500 uppercase tracking-wide">Total</span>
+          <span className="font-bold text-gray-900 flex items-center gap-1">
+            <FiDollarSign className="text-green-600" size={14} />
+            {total.toFixed(2)}
+          </span>
         </div>
+        {order.status === 'ready' && (
+          <button
+            onClick={() => onServe(order.id)}
+            className="w-full py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95 transition-transform"
+          >
+            Mark Served
+          </button>
+        )}
+        {order.status === 'served' && (
+          <button
+            onClick={() => onComplete(order.id)}
+            className="w-full py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 active:scale-95 transition-transform flex items-center justify-center gap-1.5"
+          >
+            <FiCheck size={14} /> Collect Payment
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function ReportsTab({ restaurantId, user }) {
+function ReportsTab({ restaurantId }) {
   const [period, setPeriod] = useState('daily');
   const [date, setDate] = useState(new Date());
   const [reportData, setReportData] = useState(null);
