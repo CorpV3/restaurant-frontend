@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import QRCode from 'react-qr-code';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { tableAPI } from '../../services/api';
-import axios from 'axios';
+import { tableAPI, authAPI } from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -82,10 +81,8 @@ export default function TableManagement() {
 
     setVerifyingPassword(true);
     try {
-      // Verify password first
-      const verifyResponse = await axios.post('/api/v1/auth/verify-password', {
-        password
-      });
+      // Verify password first (uses authenticated request with Bearer token)
+      const verifyResponse = await authAPI.verifyPassword(password);
 
       if (!verifyResponse.data.valid) {
         toast.error('Invalid password');
