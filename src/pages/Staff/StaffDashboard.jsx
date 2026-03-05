@@ -33,7 +33,7 @@ function playOrderAlert() {
       osc.start(ctx.currentTime + delay);
       osc.stop(ctx.currentTime + delay + 0.25);
     });
-  } catch (_) {}
+  } catch (_) { /* ignore audio errors */ }
 }
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
