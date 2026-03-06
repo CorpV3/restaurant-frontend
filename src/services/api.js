@@ -183,6 +183,14 @@ export const feedbackAPI = {
   getSummary: (restaurantId, days) => restaurantApi.get(`/api/v1/restaurants/${restaurantId}/feedback/stats/summary`, { params: { days } }),
 };
 
+// Delivery Integration API - uses Integration Service (via api-gateway)
+export const integrationAPI = {
+  list: (restaurantId) => restaurantApi.get(`/api/v1/delivery-integrations/${restaurantId}`),
+  upsert: (data) => restaurantApi.post('/api/v1/delivery-integrations', data),
+  remove: (integrationId) => restaurantApi.delete(`/api/v1/delivery-integrations/${integrationId}`),
+  toggle: (integrationId) => restaurantApi.patch(`/api/v1/delivery-integrations/${integrationId}/toggle`),
+};
+
 // Order API - uses Restaurant Service
 export const orderAPI = {
   list: (restaurantId, params) => restaurantApi.get(`/api/v1/restaurants/${restaurantId}/orders`, { params }),
