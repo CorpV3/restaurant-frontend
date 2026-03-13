@@ -312,6 +312,7 @@ export default function MasterAdminDashboard() {
                 <thead>
                   <tr className="border-b-2 border-gray-300">
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">POS Code</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Phone</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Currency</th>
@@ -326,6 +327,11 @@ export default function MasterAdminDashboard() {
                   {restaurants.map((restaurant) => (
                     <tr key={restaurant.id} className="border-b hover:bg-gray-50">
                       <td className="py-3 px-4 font-semibold text-gray-900">{restaurant.name}</td>
+                      <td className="py-3 px-4">
+                        <span className="font-mono bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-semibold tracking-wider">
+                          {restaurant.id?.substring(0, 5).toUpperCase()}
+                        </span>
+                      </td>
                       <td className="py-3 px-4 text-gray-600">{restaurant.email || '-'}</td>
                       <td className="py-3 px-4 text-gray-600">{restaurant.phone || '-'}</td>
                       <td className="py-3 px-4 text-gray-600">
