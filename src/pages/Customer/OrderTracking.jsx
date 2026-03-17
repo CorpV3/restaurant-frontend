@@ -401,24 +401,18 @@ export default function OrderTracking() {
         <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
           <h3 className="font-bold text-lg mb-4">Quick Actions</h3>
           <div className="flex flex-col gap-4">
-            {/* Generate Receipt Button - Only show for SERVED orders */}
+            {/* Served — staff will collect payment */}
             {order.status === 'served' && (
-              <button
-                onClick={handleGenerateReceipt}
-                disabled={generatingReceipt}
-                className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2"
-              >
-                {generatingReceipt ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Generating Receipt...
-                  </>
-                ) : (
-                  <>
-                    ✅ Generate Receipt & Free Table
-                  </>
-                )}
-              </button>
+              <div className="w-full bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                <p className="text-green-800 font-semibold text-lg">🍽️ Your food has been served!</p>
+                <p className="text-green-600 text-sm mt-1">Staff will come to collect payment shortly.</p>
+              </div>
+            )}
+            {order.status === 'completed' && (
+              <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                <p className="text-blue-800 font-semibold text-lg">✅ Payment Collected</p>
+                <p className="text-blue-600 text-sm mt-1">Thank you for dining with us!</p>
+              </div>
             )}
 
             <button
