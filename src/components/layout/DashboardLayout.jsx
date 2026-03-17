@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiPackage, FiGrid, FiMessageSquare, FiLogOut, FiMenu, FiX, FiUsers, FiBarChart2, FiTrendingUp, FiUserCheck, FiTruck } from 'react-icons/fi';
+import { FiHome, FiPackage, FiGrid, FiMessageSquare, FiLogOut, FiMenu, FiX, FiUsers, FiBarChart2, FiTrendingUp, FiUserCheck, FiTruck, FiCreditCard } from 'react-icons/fi';
 import useAuthStore from '../../store/authStore';
 
 export default function DashboardLayout({ children }) {
@@ -25,6 +25,7 @@ export default function DashboardLayout({ children }) {
     { path: '/admin/predictions', icon: FiTrendingUp, label: 'Predictions' },
     { path: '/admin/customer-insights', icon: FiUserCheck, label: 'Customer Insights' },
     { path: '/admin/delivery', icon: FiTruck, label: 'Delivery' },
+    { path: '/admin/payment', icon: FiCreditCard, label: 'Payment' },
   ];
 
   return (
