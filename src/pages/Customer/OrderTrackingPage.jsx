@@ -299,28 +299,18 @@ const OrderTrackingPage = () => {
             <p>Status Type: {typeof order.status}</p>
           </div>
 
-          {/* Generate Receipt Button - Show for SERVED or COMPLETED orders */}
-          {(order.status === 'served' || order.status === 'SERVED' || order.status === 'completed' || order.status === 'COMPLETED') && (
-            <button
-              onClick={handleGenerateReceipt}
-              disabled={generatingReceipt || order.status === 'completed' || order.status === 'COMPLETED'}
-              className="w-full bg-green-600 text-white py-4 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg shadow-md"
-            >
-              {generatingReceipt ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generating Receipt...
-                </>
-              ) : (order.status === 'completed' || order.status === 'COMPLETED') ? (
-                <>
-                  ✅ Receipt Already Generated
-                </>
-              ) : (
-                <>
-                  ✅ Generate Receipt & Free Table
-                </>
-              )}
-            </button>
+          {/* View Bill Button - shown when served, staff will collect payment */}
+          {(order.status === 'served' || order.status === 'SERVED') && (
+            <div className="w-full bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <p className="text-green-800 font-semibold text-lg">🍽️ Your food has been served!</p>
+              <p className="text-green-600 text-sm mt-1">Staff will come to collect payment shortly.</p>
+            </div>
+          )}
+          {(order.status === 'completed' || order.status === 'COMPLETED') && (
+            <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+              <p className="text-blue-800 font-semibold text-lg">✅ Payment Collected</p>
+              <p className="text-blue-600 text-sm mt-1">Thank you for dining with us!</p>
+            </div>
           )}
 
           {/* Other Actions */}
