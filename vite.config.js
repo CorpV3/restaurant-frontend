@@ -21,6 +21,14 @@ export default defineConfig({
       '/api/v1/orders': {
         target: 'http://localhost:8003',
         changeOrigin: true,
+      },
+      '/api/v1/delivery-integrations': {
+        target: 'http://localhost:8015',
+        changeOrigin: true,
+      },
+      '/api/v1/webhooks': {
+        target: 'http://localhost:8015',
+        changeOrigin: true,
       }
     }
   }
