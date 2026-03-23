@@ -191,6 +191,28 @@ export const integrationAPI = {
   toggle: (integrationId) => restaurantApi.patch(`/api/v1/delivery-integrations/${integrationId}/toggle`),
 };
 
+// Inventory API - uses Restaurant Service
+export const inventoryAPI = {
+  // Ingredients
+  listItems: (rid, params) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/items`, { params }),
+  createItem: (rid, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/items`, data),
+  updateItem: (rid, id, data) => restaurantApi.patch(`/api/v1/restaurants/${rid}/inventory/items/${id}`, data),
+  deleteItem: (rid, id) => restaurantApi.delete(`/api/v1/restaurants/${rid}/inventory/items/${id}`),
+  adjustStock: (rid, id, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/items/${id}/adjust`, data),
+  // Prepared food
+  listPrepared: (rid, params) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/prepared`, { params }),
+  createPrepared: (rid, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/prepared`, data),
+  updatePrepared: (rid, id, data) => restaurantApi.patch(`/api/v1/restaurants/${rid}/inventory/prepared/${id}`, data),
+  deletePrepared: (rid, id) => restaurantApi.delete(`/api/v1/restaurants/${rid}/inventory/prepared/${id}`),
+  convertToOffer: (rid, id, discount) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/prepared/${id}/offer`, null, { params: { discount } }),
+  // Recipes
+  listRecipes: (rid, params) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/recipes`, { params }),
+  createRecipe: (rid, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/recipes`, data),
+  deleteRecipe: (rid, id) => restaurantApi.delete(`/api/v1/restaurants/${rid}/inventory/recipes/${id}`),
+  // Alerts
+  getAlerts: (rid) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/alerts`),
+};
+
 // Order API - uses Restaurant Service
 export const orderAPI = {
   list: (restaurantId, params) => restaurantApi.get(`/api/v1/restaurants/${restaurantId}/orders`, { params }),

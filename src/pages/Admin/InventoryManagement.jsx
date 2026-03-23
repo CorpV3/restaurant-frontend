@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { FiPlus, FiAlertTriangle, FiPackage, FiClock, FiTrendingUp, FiTrash2, FiEdit2, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import useAuthStore from '../../store/authStore';
-import { restaurantApi } from '../../services/api';
+import { inventoryAPI, menuAPI } from '../../services/api';
 
 const TABS = ['Ingredients', 'Prepared Food', 'Recipes', 'Alerts'];
 
@@ -41,19 +41,16 @@ export default function InventoryManagement() {
   const [editingItem, setEditingItem] = useState(null);
   const [adjustTarget, setAdjustTarget] = useState(null);
 
-  const api = (path, opts = {}) =>
-    restaurantApi({ url: `/api/v1/restaurants/${restaurantId}${path}`, ...opts });
-
   const fetchAll = useCallback(async () => {
     if (!restaurantId) return;
     setLoading(true);
     try {
       const [ingRes, prepRes, recRes, alertRes, menuRes] = await Promise.all([
-        api('/inventory/items'),
-        api('/inventory/prepared'),
-        api('/inventory/recipes'),
-        api('/inventory/alerts'),
-        restaurantApi.get(`/api/v1/restaurants/${restaurantId}/menu-items`),
+        inventoryAPI.listItems(restaurantId),
+        inventoryAPI.listPrepared(restaurantId),
+        inventoryAPI.listRecipes(restaurantId),
+        inventoryAPI.getAlerts(restaurantId),
+        menuAPI.list(restaurantId),
       ]);
       setIngredients(ingRes.data);
       setPrepared(prepRes.data);
@@ -137,7 +134,7 @@ export default function InventoryManagement() {
                   onAdjust={(item) => { setAdjustTarget(item); setShowAdjustModal(true); }}
                   onDelete={async (id) => {
                     if (!confirm('Delete this ingredient?')) return;
-                    await api(`/inventory/items/${id}`, { method: 'DELETE' });
+                    await inventoryAPI.deleteItem(restaurantId, id);
                     fetchAll(); toast.success('Deleted');
                   }}
                 />
@@ -150,12 +147,12 @@ export default function InventoryManagement() {
                   onOffer={async (item) => {
                     const discount = prompt('Enter discount % (1-99):', '20');
                     if (!discount) return;
-                    await api(`/inventory/prepared/${item.id}/offer?discount=${discount}`, { method: 'POST' });
+                    await inventoryAPI.convertToOffer(restaurantId, item.id, parseFloat(discount));
                     fetchAll(); toast.success(`Offer applied: ${discount}% off`);
                   }}
                   onDelete={async (id) => {
                     if (!confirm('Delete this item?')) return;
-                    await api(`/inventory/prepared/${id}`, { method: 'DELETE' });
+                    await inventoryAPI.deletePrepared(restaurantId, id);
                     fetchAll(); toast.success('Deleted');
                   }}
                 />
@@ -168,7 +165,7 @@ export default function InventoryManagement() {
                   onAdd={() => setShowRecipeModal(true)}
                   onDelete={async (id) => {
                     if (!confirm('Remove this recipe ingredient?')) return;
-                    await api(`/inventory/recipes/${id}`, { method: 'DELETE' });
+                    await inventoryAPI.deleteRecipe(restaurantId, id);
                     fetchAll(); toast.success('Removed');
                   }}
                 />
@@ -188,9 +185,9 @@ export default function InventoryManagement() {
           onClose={() => setShowIngredientModal(false)}
           onSave={async (data) => {
             if (editingItem) {
-              await api(`/inventory/items/${editingItem.id}`, { method: 'PATCH', data });
+              await inventoryAPI.updateItem(restaurantId, editingItem.id, data);
             } else {
-              await api('/inventory/items', { method: 'POST', data });
+              await inventoryAPI.createItem(restaurantId, data);
             }
             setShowIngredientModal(false); fetchAll();
             toast.success(editingItem ? 'Updated' : 'Ingredient added');
@@ -204,9 +201,9 @@ export default function InventoryManagement() {
           onClose={() => setShowPreparedModal(false)}
           onSave={async (data) => {
             if (editingItem) {
-              await api(`/inventory/prepared/${editingItem.id}`, { method: 'PATCH', data });
+              await inventoryAPI.updatePrepared(restaurantId, editingItem.id, data);
             } else {
-              await api('/inventory/prepared', { method: 'POST', data });
+              await inventoryAPI.createPrepared(restaurantId, data);
             }
             setShowPreparedModal(false); fetchAll();
             toast.success(editingItem ? 'Updated' : 'Prepared food added');
@@ -219,7 +216,7 @@ export default function InventoryManagement() {
           ingredients={ingredients}
           onClose={() => setShowRecipeModal(false)}
           onSave={async (data) => {
-            await api('/inventory/recipes', { method: 'POST', data });
+            await inventoryAPI.createRecipe(restaurantId, data);
             setShowRecipeModal(false); fetchAll();
             toast.success('Recipe ingredient added');
           }}
@@ -230,7 +227,7 @@ export default function InventoryManagement() {
           item={adjustTarget}
           onClose={() => setShowAdjustModal(false)}
           onSave={async (data) => {
-            await api(`/inventory/items/${adjustTarget.id}/adjust`, { method: 'POST', data });
+            await inventoryAPI.adjustStock(restaurantId, adjustTarget.id, data);
             setShowAdjustModal(false); fetchAll();
             toast.success('Stock adjusted');
           }}
