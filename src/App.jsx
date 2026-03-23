@@ -29,6 +29,7 @@ import AnalyticsDashboard from './pages/Admin/AnalyticsDashboard';
 import PredictionsDashboard from './pages/Admin/PredictionsDashboard';
 import CustomerInsights from './pages/Admin/CustomerInsights';
 import DeliveryIntegration from './pages/Admin/DeliveryIntegration';
+import InventoryManagement from './pages/Admin/InventoryManagement';
 
 // Chef Pages
 import KitchenDashboard from './pages/Kitchen/KitchenDashboard';
@@ -197,6 +198,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['restaurant_admin']}>
               <CustomerInsights />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/inventory"
+          element={
+            <ProtectedRoute allowedRoles={['restaurant_admin']}>
+              <InventoryManagement />
             </ProtectedRoute>
           }
         />
