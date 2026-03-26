@@ -204,7 +204,7 @@ export const inventoryAPI = {
   createPrepared: (rid, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/prepared`, data),
   updatePrepared: (rid, id, data) => restaurantApi.patch(`/api/v1/restaurants/${rid}/inventory/prepared/${id}`, data),
   deletePrepared: (rid, id) => restaurantApi.delete(`/api/v1/restaurants/${rid}/inventory/prepared/${id}`),
-  convertToOffer: (rid, id, discount) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/prepared/${id}/offer`, null, { params: { discount } }),
+  convertToOffer: (rid, id, discount, offerPrice) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/prepared/${id}/offer`, null, { params: { ...(discount != null && { discount }), ...(offerPrice != null && { offer_price: offerPrice }) } }),
   // Recipes
   listRecipes: (rid, params) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/recipes`, { params }),
   createRecipe: (rid, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/recipes`, data),
