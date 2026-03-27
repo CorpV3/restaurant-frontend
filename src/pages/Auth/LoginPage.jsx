@@ -87,13 +87,19 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
               <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-semibold">
                 Sign up here
               </Link>
             </p>
+            <div className="border-t border-gray-100 pt-3">
+              <Link to="/partner/login"
+                className="inline-flex items-center gap-2 text-sm text-emerald-700 hover:text-emerald-800 font-semibold bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition-colors">
+                🤝 Partner Portal →
+              </Link>
+            </div>
           </div>
 
           {/* Demo Credentials */}

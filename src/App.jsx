@@ -31,6 +31,9 @@ import CustomerInsights from './pages/Admin/CustomerInsights';
 import DeliveryIntegration from './pages/Admin/DeliveryIntegration';
 import InventoryManagement from './pages/Admin/InventoryManagement';
 
+// Shared Components
+import TierGate from './components/TierGate';
+
 // Chef Pages
 import KitchenDashboard from './pages/Kitchen/KitchenDashboard';
 
@@ -40,6 +43,12 @@ import StaffDashboard from './pages/Staff/StaffDashboard';
 // Master Admin Pages
 import MasterAdminDashboard from './pages/MasterAdmin/MasterAdminDashboard';
 import UserManagement from './pages/MasterAdmin/UserManagement';
+import PartnerApproval from './pages/MasterAdmin/PartnerApproval';
+
+// Partner Pages
+import PartnerLogin from './pages/Partner/PartnerLogin';
+import PartnerSignup from './pages/Partner/PartnerSignup';
+import PartnerDashboard from './pages/Partner/PartnerDashboard';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -110,6 +119,11 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
+        {/* Partner Routes */}
+        <Route path="/partner/login" element={<PartnerLogin />} />
+        <Route path="/partner/signup" element={<PartnerSignup />} />
+        <Route path="/partner/dashboard" element={<PartnerDashboard />} />
+
         {/* Customer Login/Register */}
         <Route path="/customer-login" element={<CustomerLoginPage />} />
 
@@ -157,7 +171,9 @@ function App() {
           path="/admin/tables"
           element={
             <ProtectedRoute allowedRoles={['restaurant_admin']}>
-              <TableManagement />
+              <TierGate feature="Table Management">
+                <TableManagement />
+              </TierGate>
             </ProtectedRoute>
           }
         />
@@ -189,7 +205,9 @@ function App() {
           path="/admin/predictions"
           element={
             <ProtectedRoute allowedRoles={['restaurant_admin']}>
-              <PredictionsDashboard />
+              <TierGate feature="Demand Predictions">
+                <PredictionsDashboard />
+              </TierGate>
             </ProtectedRoute>
           }
         />
@@ -213,7 +231,9 @@ function App() {
           path="/admin/delivery-integration"
           element={
             <ProtectedRoute allowedRoles={['restaurant_admin']}>
-              <DeliveryIntegration />
+              <TierGate feature="Delivery Integration">
+                <DeliveryIntegration />
+              </TierGate>
             </ProtectedRoute>
           }
         />
@@ -252,6 +272,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['master_admin']}>
               <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/master-admin/partners"
+          element={
+            <ProtectedRoute allowedRoles={['master_admin']}>
+              <PartnerApproval />
             </ProtectedRoute>
           }
         />

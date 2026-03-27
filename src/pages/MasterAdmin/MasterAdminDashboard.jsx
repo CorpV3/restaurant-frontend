@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FiUsers, FiDollarSign, FiTrendingUp, FiLogOut, FiPlus, FiEdit2, FiTrash2, FiX, FiFileText } from 'react-icons/fi';
-import { restaurantAPI } from '../../services/api';
+import { restaurantAPI, partnerAuthAPI } from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -35,6 +35,7 @@ export default function MasterAdminDashboard() {
   const [invoices, setInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [editingRestaurant, setEditingRestaurant] = useState(null);
+  const [partners, setPartners] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -50,11 +51,25 @@ export default function MasterAdminDashboard() {
     per_table_booking_fee: 0,
     per_online_booking_fee: 0,
     enable_booking_fees: false,
+    tier: 'enterprise',
+    billing_model: 'per_booking',
+    monthly_charge: 0,
+    partner_id: '',
+    commission_type: 'percent',
+    commission_value: 10,
   });
 
   useEffect(() => {
     fetchRestaurants();
+    fetchPartners();
   }, []);
+
+  const fetchPartners = async () => {
+    try {
+      const res = await partnerAuthAPI.listPartners(true); // approved only
+      setPartners(res.data);
+    } catch { /* ignore */ }
+  };
 
   const fetchRestaurants = async () => {
     try {
@@ -91,6 +106,12 @@ export default function MasterAdminDashboard() {
       per_table_booking_fee: 0,
       per_online_booking_fee: 0,
       enable_booking_fees: false,
+      tier: 'enterprise',
+      billing_model: 'per_booking',
+      monthly_charge: 0,
+      partner_id: '',
+      commission_type: 'percent',
+      commission_value: 10,
     });
     setShowModal(true);
   };
@@ -112,6 +133,12 @@ export default function MasterAdminDashboard() {
       per_table_booking_fee: restaurant.per_table_booking_fee || 0,
       per_online_booking_fee: restaurant.per_online_booking_fee || 0,
       enable_booking_fees: restaurant.enable_booking_fees || false,
+      tier: restaurant.tier || 'enterprise',
+      billing_model: restaurant.billing_model || 'per_booking',
+      monthly_charge: restaurant.monthly_charge || 0,
+      partner_id: restaurant.partner_id || '',
+      commission_type: restaurant.commission_type || 'percent',
+      commission_value: restaurant.commission_value ?? 10,
     });
     setShowModal(true);
   };
@@ -132,13 +159,19 @@ export default function MasterAdminDashboard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const payload = {
+      ...formData,
+      partner_id: formData.partner_id || null,
+      commission_type: formData.partner_id ? formData.commission_type : null,
+      commission_value: formData.partner_id ? parseFloat(formData.commission_value) : null,
+      monthly_charge: parseFloat(formData.monthly_charge) || 0,
+    };
     try {
       if (editingRestaurant) {
-        await restaurantAPI.update(editingRestaurant.id, formData);
+        await restaurantAPI.update(editingRestaurant.id, payload);
         toast.success('Restaurant updated successfully!');
       } else {
-        await restaurantAPI.create(formData);
+        await restaurantAPI.create(payload);
         toast.success('Restaurant created successfully!');
       }
       setShowModal(false);
@@ -149,10 +182,13 @@ export default function MasterAdminDashboard() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'max_tables' ? parseInt(value) || 0 : value,
+      [name]: type === 'checkbox' ? checked
+        : ['max_tables', 'monthly_charge', 'commission_value', 'per_table_booking_fee', 'per_online_booking_fee'].includes(name)
+          ? parseFloat(value) || 0
+          : value,
     }));
   };
 
@@ -234,13 +270,19 @@ export default function MasterAdminDashboard() {
               <p className="text-sm text-gray-500 mt-1">Logged in as: {user.username} ({user.email})</p>
             )}
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
-          >
-            <FiLogOut />
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            <Link to="/master-admin/partners"
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors">
+              🤝 Partners
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
+            >
+              <FiLogOut />
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -605,6 +647,77 @@ export default function MasterAdminDashboard() {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="0.00"
                           />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Partner & Tier Configuration */}
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Partner & Feature Tier</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Feature Tier</label>
+                        <select name="tier" value={formData.tier} onChange={handleInputChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                          <option value="enterprise">Enterprise (Full Access)</option>
+                          <option value="basic">Basic (Limited)</option>
+                        </select>
+                        {formData.tier === 'basic' && (
+                          <p className="text-xs text-amber-600 mt-1">Basic hides: Tables, Delivery Integration, Predictions</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Billing Model</label>
+                        <select name="billing_model" value={formData.billing_model} onChange={handleInputChange}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                          <option value="per_booking">Per Booking</option>
+                          <option value="monthly">Monthly Charge</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {formData.billing_model === 'monthly' && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Monthly Charge ({formData.currency_symbol})
+                        </label>
+                        <input type="number" name="monthly_charge" value={formData.monthly_charge}
+                          onChange={handleInputChange} min="0" step="0.01" placeholder="0.00"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">Referred by Partner</label>
+                      <select name="partner_id" value={formData.partner_id} onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">— No Partner —</option>
+                        {partners.map(p => (
+                          <option key={p.id} value={p.id}>{p.full_name} {p.company_name ? `(${p.company_name})` : ''}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {formData.partner_id && (
+                      <div className="grid grid-cols-2 gap-4 pl-4 border-l-2 border-emerald-200">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">Commission Type</label>
+                          <select name="commission_type" value={formData.commission_type} onChange={handleInputChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="percent">Percentage (%)</option>
+                            <option value="fixed">Fixed Amount ({formData.currency_symbol})</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            {formData.commission_type === 'percent' ? 'Commission (%)' : `Commission (${formData.currency_symbol})`}
+                          </label>
+                          <input type="number" name="commission_value" value={formData.commission_value}
+                            onChange={handleInputChange} min="0" step="0.01"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
                         </div>
                       </div>
                     )}

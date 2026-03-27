@@ -82,6 +82,19 @@ const addInterceptors = (instance) => {
 addInterceptors(authApi);
 addInterceptors(restaurantApi);
 
+// Partner API instances — use partner_token when present, fallback to access_token
+const partnerAuthApiInstance = axios.create({ baseURL: AUTH_SERVICE_URL, headers: { 'Content-Type': 'application/json' } });
+const partnerRestApiInstance = axios.create({ baseURL: RESTAURANT_SERVICE_URL, headers: { 'Content-Type': 'application/json' } });
+
+[partnerAuthApiInstance, partnerRestApiInstance].forEach(instance => {
+  instance.interceptors.request.use((config) => {
+    const token = localStorage.getItem('partner_token') || localStorage.getItem('access_token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  }, (error) => Promise.reject(error));
+  instance.interceptors.response.use(r => r, err => Promise.reject(err));
+});
+
 // Export default as auth API for backwards compatibility
 export default authApi;
 
@@ -211,6 +224,29 @@ export const inventoryAPI = {
   deleteRecipe: (rid, id) => restaurantApi.delete(`/api/v1/restaurants/${rid}/inventory/recipes/${id}`),
   // Alerts
   getAlerts: (rid) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/alerts`),
+};
+
+// Partner Auth API - uses Auth Service (partner_token or admin access_token)
+export const partnerAuthAPI = {
+  signup: (data) => partnerAuthApiInstance.post('/api/v1/partners/signup', data),
+  login: (data) => partnerAuthApiInstance.post('/api/v1/partners/login', data),
+  getMe: () => partnerAuthApiInstance.get('/api/v1/partners/me'),
+  updateMe: (data) => partnerAuthApiInstance.patch('/api/v1/partners/me', data),
+  // Admin (uses admin access_token)
+  listPartners: (approved) => authApi.get('/api/v1/partners/admin/list', { params: approved != null ? { approved } : {} }),
+  approvePartner: (id) => authApi.patch(`/api/v1/partners/admin/${id}/approve`),
+  rejectPartner: (id) => authApi.patch(`/api/v1/partners/admin/${id}/reject`),
+  updateCommission: (id, data) => authApi.patch(`/api/v1/partners/admin/${id}/commission`, data),
+};
+
+// Partner Commission & Invoice API - uses Restaurant Service (partner_token or admin access_token)
+export const partnerAPI = {
+  getDashboard: (partnerId) => partnerRestApiInstance.get(`/api/v1/partners/${partnerId}/dashboard`),
+  getRestaurants: (partnerId) => partnerRestApiInstance.get(`/api/v1/partners/${partnerId}/restaurants`),
+  generateInvoice: (partnerId, data) => restaurantApi.post(`/api/v1/partners/${partnerId}/invoices/generate`, data),
+  listInvoices: (partnerId) => partnerRestApiInstance.get(`/api/v1/partners/${partnerId}/invoices`),
+  getInvoice: (partnerId, invoiceId) => partnerRestApiInstance.get(`/api/v1/partners/${partnerId}/invoices/${invoiceId}`),
+  markPaid: (partnerId, invoiceId) => restaurantApi.patch(`/api/v1/partners/${partnerId}/invoices/${invoiceId}/mark-paid`),
 };
 
 // Order API - uses Restaurant Service
