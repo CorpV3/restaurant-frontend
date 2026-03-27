@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiUser, FiMail, FiLock, FiBriefcase, FiPhone, FiDollarSign } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiBriefcase, FiPhone } from 'react-icons/fi';
 import { partnerAuthAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -12,8 +12,6 @@ export default function PartnerSignup() {
     full_name: '',
     company_name: '',
     phone: '',
-    commission_type: 'percent',
-    commission_value: 10,
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -22,7 +20,11 @@ export default function PartnerSignup() {
     e.preventDefault();
     setLoading(true);
     try {
-      await partnerAuthAPI.signup({ ...form, commission_value: parseFloat(form.commission_value) });
+      await partnerAuthAPI.signup({
+        ...form,
+        commission_type: 'percent',
+        commission_value: 10,
+      });
       toast.success('Registration submitted! Awaiting admin approval.');
       navigate('/partner/login');
     } catch (err) {
@@ -88,7 +90,7 @@ export default function PartnerSignup() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
                 <div className="relative">
                   <FiBriefcase className="absolute left-3 top-3 text-gray-400" />
-                  <input className="input-field pl-9" placeholder="Company (optional)" value={form.company_name}
+                  <input className="input-field pl-9" placeholder="Optional" value={form.company_name}
                     onChange={e => set('company_name', e.target.value)} />
                 </div>
               </div>
@@ -96,32 +98,10 @@ export default function PartnerSignup() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                 <div className="relative">
                   <FiPhone className="absolute left-3 top-3 text-gray-400" />
-                  <input className="input-field pl-9" placeholder="Phone (optional)" value={form.phone}
+                  <input className="input-field pl-9" placeholder="Optional" value={form.phone}
                     onChange={e => set('phone', e.target.value)} />
                 </div>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Commission Preference</label>
-              <div className="grid grid-cols-2 gap-3">
-                <select className="input-field" value={form.commission_type} onChange={e => set('commission_type', e.target.value)}>
-                  <option value="percent">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount</option>
-                </select>
-                <div className="relative">
-                  <FiDollarSign className="absolute left-3 top-3 text-gray-400" />
-                  <input type="number" className="input-field pl-9" min="0" step="0.01"
-                    placeholder={form.commission_type === 'percent' ? '10' : '50'}
-                    value={form.commission_value}
-                    onChange={e => set('commission_value', e.target.value)} />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {form.commission_type === 'percent'
-                  ? `You'll earn ${form.commission_value}% of each restaurant's monthly/booking revenue`
-                  : `You'll earn a fixed £${form.commission_value} per restaurant per month`}
-              </p>
             </div>
 
             <button
@@ -135,7 +115,7 @@ export default function PartnerSignup() {
 
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-xs text-amber-700">
-              Your account will be reviewed by an administrator. You'll be able to log in once approved.
+              Your account will be reviewed by an administrator. Commission rates are set by the admin when assigning restaurants to your account.
             </p>
           </div>
 
