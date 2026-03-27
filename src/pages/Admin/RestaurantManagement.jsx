@@ -318,6 +318,18 @@ export default function RestaurantManagement() {
 
         <div className="bg-white rounded-xl shadow-md p-8">
           <form onSubmit={handleUpdate} className="space-y-6">
+            {/* POS Login Code - always read-only */}
+            {restaurant && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">POS Login Code</p>
+                  <p className="font-mono text-2xl font-bold text-blue-900 tracking-widest">
+                    {restaurant.id?.substring(0, 5).toUpperCase()}
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">Use this code to log in from the POS app</p>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Restaurant Name</label>

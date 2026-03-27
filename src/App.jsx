@@ -30,6 +30,7 @@ import PredictionsDashboard from './pages/Admin/PredictionsDashboard';
 import CustomerInsights from './pages/Admin/CustomerInsights';
 import DeliveryIntegration from './pages/Admin/DeliveryIntegration';
 import InventoryManagement from './pages/Admin/InventoryManagement';
+import PaymentIntegration from './pages/Admin/PaymentIntegration';
 
 // Shared Components
 import TierGate from './components/TierGate';
@@ -234,6 +235,14 @@ function App() {
               <TierGate feature="Delivery Integration">
                 <DeliveryIntegration />
               </TierGate>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/payment"
+          element={
+            <ProtectedRoute allowedRoles={['restaurant_admin']}>
+              <PaymentIntegration />
             </ProtectedRoute>
           }
         />
