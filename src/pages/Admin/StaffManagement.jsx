@@ -415,7 +415,7 @@ export default function StaffManagement() {
 
                 <div className="flex gap-4 pt-4">
                   <button type="submit" className="btn-primary flex-1">
-                    {editingStaff ? 'Update Staff' : `Create ${staffType === 'chef' ? 'Chef' : 'Customer'}`}
+                    {editingStaff ? 'Update Staff' : `Create ${staffType === 'chef' ? 'Chef' : 'Staff'}`}
                   </button>
                   <button
                     type="button"

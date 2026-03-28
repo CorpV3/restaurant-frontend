@@ -263,7 +263,9 @@ export default function InventoryManagement() {
                 setShowIngredientModal(false); fetchAll();
                 toast.success(editingItem ? 'Updated' : 'Ingredient added');
               } catch (e) {
-                toast.error(e?.response?.data?.detail || 'Failed to save');
+                const detail = e?.response?.data?.detail;
+                const msg = Array.isArray(detail) ? detail[0]?.msg || 'Validation error' : (detail || 'Failed to save');
+                toast.error(msg);
               }
             }}
           />
@@ -741,7 +743,13 @@ function IngredientModal({ item, onClose, onSave }) {
 
   const handleSave = () => {
     if (!form.name.trim()) { toast.error('Name is required'); return; }
-    onSave(form);
+    const payload = {
+      ...form,
+      cost_per_unit: form.cost_per_unit !== '' ? parseFloat(form.cost_per_unit) || null : null,
+      supplier: form.supplier.trim() || null,
+      notes: form.notes.trim() || null,
+    };
+    onSave(payload);
   };
 
   return (
