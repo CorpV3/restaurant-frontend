@@ -356,14 +356,14 @@ function IngredientsSection({ items, search, onSearch, onAdd, onEdit, onAdjust, 
       ) : (
         <div className="space-y-2">
           {items.map(item => (
-            <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl border ${item.quantity <= item.reorder_level ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
+            <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl border ${item.quantity <= (item.min_threshold ?? item.reorder_level ?? 0) ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-gray-900">{item.name}</p>
                   <span className="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-600 capitalize">{item.category}</span>
-                  {item.quantity <= item.reorder_level && <span className="text-xs px-2 py-0.5 rounded-full bg-red-200 text-red-700">Low Stock</span>}
+                  {item.quantity <= (item.min_threshold ?? item.reorder_level ?? 0) && <span className="text-xs px-2 py-0.5 rounded-full bg-red-200 text-red-700">Low Stock</span>}
                 </div>
-                <p className="text-sm text-gray-500 mt-0.5">{item.quantity} {item.unit} · Reorder at {item.reorder_level} {item.unit}</p>
+                <p className="text-sm text-gray-500 mt-0.5">{item.quantity} {item.unit} · Reorder at {item.min_threshold ?? item.reorder_level ?? 0} {item.unit}</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => onAdjust(item)} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Adjust</button>
@@ -439,7 +439,7 @@ function AlertsSection({ alerts, onRefresh }) {
           {alerts.low_stock.map(i => (
             <div key={i.id} className="p-3 bg-orange-50 border border-orange-200 rounded-xl mb-2">
               <p className="font-semibold text-gray-900">{i.name}</p>
-              <p className="text-sm text-orange-700">{i.quantity} {i.unit} remaining (reorder at {i.reorder_level})</p>
+              <p className="text-sm text-orange-700">{i.quantity} {i.unit} remaining (reorder at {i.min_threshold ?? i.reorder_level ?? 0})</p>
             </div>
           ))}
         </div>
@@ -648,7 +648,7 @@ function OrderHistoryTab({ restaurantId }) {
 function IngredientModal({ item, onClose, onSave }) {
   const [form, setForm] = useState({
     name: item?.name || '', quantity: item?.quantity ?? 0, unit: item?.unit || 'pieces',
-    category: item?.category || 'other', reorder_level: item?.reorder_level ?? 0,
+    category: item?.category || 'other', min_threshold: item?.min_threshold ?? item?.reorder_level ?? 0,
   });
   const [saving, setSaving] = useState(false);
   const f = (k, v) => setForm(s => ({ ...s, [k]: v }));
@@ -676,7 +676,7 @@ function IngredientModal({ item, onClose, onSave }) {
               className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
               {CATEGORIES.map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
             </select>
-            <input type="number" value={form.reorder_level} onChange={e => f('reorder_level', parseFloat(e.target.value) || 0)} placeholder="Reorder level"
+            <input type="number" value={form.min_threshold} onChange={e => f('min_threshold', parseFloat(e.target.value) || 0)} placeholder="Reorder level"
               className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />
           </div>
         </div>
