@@ -8,6 +8,16 @@ import { orderAPI, inventoryAPI, menuAPI } from '../../services/api';
 const UNITS = ['pieces', 'kg', 'g', 'L', 'ml', 'portions', 'bottles', 'boxes', 'bags'];
 const CATEGORIES = ['meat', 'vegetables', 'dairy', 'bakery', 'spices', 'beverages', 'seafood', 'frozen', 'other'];
 
+function safeDate(str) {
+  if (!str) return null;
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+function safeFmt(str, opts = {}) {
+  const d = safeDate(str);
+  return d ? d.toLocaleString(undefined, opts) : '—';
+}
+
 function generateBatchNo() {
   const d = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const r = Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -15,8 +25,8 @@ function generateBatchNo() {
 }
 
 function printLabelBrowser(item) {
-  const exp = new Date(item.expires_at);
-  const prep = new Date(item.prepared_at || Date.now());
+  const exp = safeDate(item.expires_at) || new Date();
+  const prep = safeDate(item.prepared_at) || new Date();
   const w = window.open('', '_blank', 'width=360,height=280');
   w.document.write(`<!DOCTYPE html><html><head><title>Label - ${item.name}</title>
   <style>
@@ -320,7 +330,7 @@ function InventoryTab({ restaurantId }) {
           onClose={() => setShowAdjustModal(false)}
           onSave={async (qty, reason) => {
             try {
-              await inventoryAPI.adjustStock(restaurantId, adjustTarget.id, { quantity_change: qty, reason });
+              await inventoryAPI.adjustStock(restaurantId, adjustTarget.id, { delta: qty, reason });
               toast.success('Stock adjusted'); setShowAdjustModal(false); fetchAll();
             } catch { toast.error('Failed to adjust'); }
           }}
@@ -381,7 +391,8 @@ function IngredientsSection({ items, search, onSearch, onAdd, onEdit, onAdjust, 
 function PreparedSection({ items, search, onSearch, onAdd, onPrintLabel, onConsume, onDelete }) {
   const now = new Date();
   const statusBadge = (item) => {
-    if (item.status === 'expired' || new Date(item.expires_at) < now) return <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">Expired</span>;
+    const exp = safeDate(item.expires_at);
+    if (item.status === 'expired' || (exp && exp < now)) return <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">Expired</span>;
     if (item.status === 'offer') return <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Offer</span>;
     return <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Active</span>;
   };
@@ -406,7 +417,7 @@ function PreparedSection({ items, search, onSearch, onAdd, onPrintLabel, onConsu
                 </div>
                 <p className="text-sm text-gray-500 mt-0.5">
                   Batch: {item.batch_number || '—'} · Qty: {item.quantity} ·
-                  Exp: {new Date(item.expires_at).toLocaleDateString()} {new Date(item.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  Exp: {safeFmt(item.expires_at, { dateStyle: 'short', timeStyle: 'short' })}
                 </p>
               </div>
               <div className="flex gap-2">
@@ -450,7 +461,7 @@ function AlertsSection({ alerts, onRefresh }) {
           {alerts.expiring_soon.map(i => (
             <div key={i.id} className="p-3 bg-yellow-50 border border-yellow-200 rounded-xl mb-2">
               <p className="font-semibold text-gray-900">{i.name}</p>
-              <p className="text-sm text-yellow-700">Expires: {new Date(i.expires_at).toLocaleString()} · Batch: {i.batch_number || '—'}</p>
+              <p className="text-sm text-yellow-700">Expires: {safeFmt(i.expires_at)} · Batch: {i.batch_number || '—'}</p>
             </div>
           ))}
         </div>
@@ -461,7 +472,7 @@ function AlertsSection({ alerts, onRefresh }) {
           {alerts.expired.map(i => (
             <div key={i.id} className="p-3 bg-red-50 border border-red-200 rounded-xl mb-2">
               <p className="font-semibold text-gray-900">{i.name}</p>
-              <p className="text-sm text-red-700">Expired: {new Date(i.expires_at).toLocaleString()} · Batch: {i.batch_number || '—'}</p>
+              <p className="text-sm text-red-700">Expired: {safeFmt(i.expires_at)} · Batch: {i.batch_number || '—'}</p>
             </div>
           ))}
         </div>
@@ -570,7 +581,7 @@ function OrderHistoryTab({ restaurantId }) {
                   <div>
                     <p className="font-bold text-gray-900 font-mono">{order.order_number}</p>
                     <p className="text-sm text-gray-500 mt-0.5">
-                      {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {safeFmt(order.created_at, { dateStyle: 'short', timeStyle: 'short' })}
                       {order.customer_name ? ` · ${order.customer_name}` : ''}
                     </p>
                   </div>
@@ -596,7 +607,7 @@ function OrderHistoryTab({ restaurantId }) {
                       <div><span className="text-gray-400 text-xs">Discount</span><br /><span className="font-semibold text-green-600">-£{order.discount_amount?.toFixed(2)}</span></div>
                     )}
                     {order.completed_at && (
-                      <div><span className="text-gray-400 text-xs">Completed</span><br /><span className="font-semibold">{new Date(order.completed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
+                      <div><span className="text-gray-400 text-xs">Completed</span><br /><span className="font-semibold">{safeFmt(order.completed_at, { timeStyle: 'short' })}</span></div>
                     )}
                     {order.refunded_at && (
                       <div><span className="text-gray-400 text-xs">Refunded</span><br /><span className="font-semibold text-red-600">£{order.refund_amount?.toFixed(2)}</span></div>
