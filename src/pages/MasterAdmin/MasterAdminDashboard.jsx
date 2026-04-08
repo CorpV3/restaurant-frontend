@@ -57,6 +57,9 @@ export default function MasterAdminDashboard() {
     partner_id: '',
     commission_type: 'percent',
     commission_value: 10,
+    vat_enabled: true,
+    vat_rate: 20.0,
+    vat_number: '',
   });
 
   useEffect(() => {
@@ -112,6 +115,9 @@ export default function MasterAdminDashboard() {
       partner_id: '',
       commission_type: 'percent',
       commission_value: 10,
+      vat_enabled: true,
+      vat_rate: 20.0,
+      vat_number: '',
     });
     setShowModal(true);
   };
@@ -139,6 +145,9 @@ export default function MasterAdminDashboard() {
       partner_id: restaurant.partner_id || '',
       commission_type: restaurant.commission_type || 'percent',
       commission_value: restaurant.commission_value ?? 10,
+      vat_enabled: restaurant.vat_enabled ?? true,
+      vat_rate: restaurant.vat_rate ?? 20.0,
+      vat_number: restaurant.vat_number || '',
     });
     setShowModal(true);
   };
@@ -655,6 +664,54 @@ export default function MasterAdminDashboard() {
                           />
                         </div>
                       </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* VAT Configuration */}
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">VAT / Tax Settings</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="vat_enabled_modal"
+                        checked={formData.vat_enabled ?? true}
+                        onChange={(e) => setFormData({ ...formData, vat_enabled: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="vat_enabled_modal" className="text-sm font-medium text-gray-700">
+                        VAT Registered — apply VAT to orders
+                      </label>
+                    </div>
+                    {formData.vat_enabled && (
+                      <div className="grid grid-cols-2 gap-4 pl-6">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">VAT Rate (%)</label>
+                          <input
+                            type="number"
+                            value={formData.vat_rate ?? 20}
+                            onChange={(e) => setFormData({ ...formData, vat_rate: parseFloat(e.target.value) || 0 })}
+                            min="0" max="100" step="0.1" placeholder="20"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">VAT Number <span className="text-gray-400 font-normal">(on receipts)</span></label>
+                          <input
+                            type="text"
+                            value={formData.vat_number || ''}
+                            onChange={(e) => setFormData({ ...formData, vat_number: e.target.value })}
+                            placeholder="e.g. GB123456789"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {!(formData.vat_enabled) && (
+                      <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 ml-7">
+                        VAT will not be charged or shown on receipts
+                      </p>
                     )}
                   </div>
                 </div>
