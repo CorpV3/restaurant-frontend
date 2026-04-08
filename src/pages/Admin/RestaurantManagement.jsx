@@ -44,6 +44,9 @@ export default function RestaurantManagement() {
     per_table_booking_fee: 0,
     per_online_booking_fee: 0,
     enable_booking_fees: false,
+    vat_enabled: true,
+    vat_rate: 20.0,
+    vat_number: '',
   });
 
   useEffect(() => {
@@ -291,6 +294,54 @@ export default function RestaurantManagement() {
                   </div>
                 </div>
 
+                {/* VAT Configuration */}
+                <div className="pt-6 border-t">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">VAT / Tax Settings</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="vat_enabled_create"
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        checked={formData.vat_enabled ?? true}
+                        onChange={(e) => setFormData({ ...formData, vat_enabled: e.target.checked })}
+                      />
+                      <label htmlFor="vat_enabled_create" className="text-sm font-medium text-gray-700">
+                        VAT Registered — apply VAT to orders
+                      </label>
+                    </div>
+                    {formData.vat_enabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">VAT Rate (%)</label>
+                          <input
+                            type="number"
+                            className="input-field"
+                            value={formData.vat_rate ?? 20}
+                            onChange={(e) => setFormData({ ...formData, vat_rate: parseFloat(e.target.value) || 0 })}
+                            min="0" max="100" step="0.1" placeholder="20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">VAT Number <span className="text-gray-400 font-normal">(printed on receipts)</span></label>
+                          <input
+                            type="text"
+                            className="input-field"
+                            value={formData.vat_number || ''}
+                            onChange={(e) => setFormData({ ...formData, vat_number: e.target.value })}
+                            placeholder="e.g. GB123456789"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {!formData.vat_enabled && (
+                      <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 ml-7">
+                        VAT will not be charged or shown on receipts
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex gap-4 pt-6 border-t">
                   <button type="submit" className="btn-primary flex-1 px-6 py-3 text-lg">
                     Create Restaurant
@@ -497,6 +548,59 @@ export default function RestaurantManagement() {
                       />
                     </div>
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* VAT Configuration */}
+            <div className="pt-6 border-t">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">VAT / Tax Settings</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="vat_enabled_edit"
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    checked={formData.vat_enabled ?? true}
+                    onChange={(e) => setFormData({ ...formData, vat_enabled: e.target.checked })}
+                    disabled={!editing}
+                  />
+                  <label htmlFor="vat_enabled_edit" className="text-sm font-medium text-gray-700">
+                    VAT Registered — apply VAT to all orders
+                  </label>
+                </div>
+                {(formData.vat_enabled ?? true) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">VAT Rate (%)</label>
+                      <input
+                        type="number"
+                        className="input-field"
+                        value={formData.vat_rate ?? 20}
+                        onChange={(e) => setFormData({ ...formData, vat_rate: parseFloat(e.target.value) || 0 })}
+                        min="0" max="100" step="0.1"
+                        disabled={!editing}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        VAT Number <span className="text-gray-400 font-normal">(printed on receipts)</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="input-field"
+                        value={formData.vat_number || ''}
+                        onChange={(e) => setFormData({ ...formData, vat_number: e.target.value })}
+                        placeholder="e.g. GB123456789"
+                        disabled={!editing}
+                      />
+                    </div>
+                  </div>
+                )}
+                {!(formData.vat_enabled ?? true) && (
+                  <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 ml-7">
+                    VAT will not be charged or shown on receipts
+                  </p>
                 )}
               </div>
             </div>

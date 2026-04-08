@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiPlus, FiEdit, FiTrash2, FiToggleLeft, FiToggleRight } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiToggleLeft, FiToggleRight, FiX, FiTag } from 'react-icons/fi';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { menuAPI } from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import useRestaurantStore from '../../store/restaurantStore';
 import toast from 'react-hot-toast';
+
+const CATEGORIES = [
+  { value: 'appetizer', label: 'Appetizer' },
+  { value: 'main_course', label: 'Main Course' },
+  { value: 'dessert', label: 'Dessert' },
+  { value: 'beverage', label: 'Beverage' },
+  { value: 'side_dish', label: 'Side Dish' },
+  { value: 'special', label: 'Special' },
+];
+
+const EMPTY_STEP = { step: 1, label: '', qty: 1, type: 'category', value: 'main_course' };
 
 export default function MenuManagement() {
   const { user } = useAuthStore();
@@ -16,6 +27,7 @@ export default function MenuManagement() {
   const [imageUploadMethod, setImageUploadMethod] = useState('url'); // 'url' or 'upload'
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [menuItemsList, setMenuItemsList] = useState([]); // for deal item picker
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -26,6 +38,8 @@ export default function MenuManagement() {
     is_vegan: false,
     is_gluten_free: false,
     preparation_time: '',
+    is_deal: false,
+    deal_components: [],
   });
 
   useEffect(() => {
@@ -41,6 +55,8 @@ export default function MenuManagement() {
     try {
       const response = await menuAPI.list(user.restaurant_id);
       setMenuItems(response.data);
+      // Keep a flat list of non-deal items for deal component picker
+      setMenuItemsList((response.data || []).filter(i => !i.is_deal));
     } catch (error) {
       toast.error('Failed to load menu items');
       console.error('Menu fetch error:', error);
@@ -54,11 +70,26 @@ export default function MenuManagement() {
     try {
       let finalFormData = { ...formData };
 
+      // Validate deal steps
+      if (finalFormData.is_deal) {
+        if (!finalFormData.deal_components || finalFormData.deal_components.length === 0) {
+          toast.error('Please add at least one deal step');
+          return;
+        }
+        for (const step of finalFormData.deal_components) {
+          if (!step.label.trim()) { toast.error('Each deal step must have a label'); return; }
+          if (step.type === 'items' && (!step.value || step.value.length === 0)) {
+            toast.error('Each "specific items" step must have at least one item selected'); return;
+          }
+        }
+      } else {
+        finalFormData.deal_components = null;
+      }
+
       // Upload image file if one is selected
       if (imageFile) {
         const uploadFormData = new FormData();
         uploadFormData.append('file', imageFile);
-
         const uploadResponse = await menuAPI.uploadImage(user.restaurant_id, uploadFormData);
         finalFormData.image_url = uploadResponse.data.image_url;
       }
@@ -79,6 +110,41 @@ export default function MenuManagement() {
       toast.error('Failed to save menu item');
       console.error('Save error:', error);
     }
+  };
+
+  // ── Deal step helpers ──────────────────────────────────────────────────────
+  const addDealStep = () => {
+    const steps = formData.deal_components || [];
+    setFormData({ ...formData, deal_components: [
+      ...steps,
+      { step: steps.length + 1, label: '', qty: 1, type: 'category', value: 'main_course' }
+    ]});
+  };
+
+  const removeDealStep = (idx) => {
+    const steps = (formData.deal_components || []).filter((_, i) => i !== idx)
+      .map((s, i) => ({ ...s, step: i + 1 }));
+    setFormData({ ...formData, deal_components: steps });
+  };
+
+  const updateDealStep = (idx, key, val) => {
+    const steps = (formData.deal_components || []).map((s, i) => {
+      if (i !== idx) return s;
+      const updated = { ...s, [key]: val };
+      if (key === 'type') updated.value = val === 'category' ? 'main_course' : [];
+      return updated;
+    });
+    setFormData({ ...formData, deal_components: steps });
+  };
+
+  const toggleDealItem = (idx, itemId) => {
+    const steps = (formData.deal_components || []).map((s, i) => {
+      if (i !== idx) return s;
+      const current = Array.isArray(s.value) ? s.value : [];
+      const next = current.includes(itemId) ? current.filter(x => x !== itemId) : [...current, itemId];
+      return { ...s, value: next };
+    });
+    setFormData({ ...formData, deal_components: steps });
   };
 
   const handleDelete = async (itemId) => {
@@ -114,6 +180,8 @@ export default function MenuManagement() {
       is_vegan: false,
       is_gluten_free: false,
       preparation_time: '',
+      is_deal: false,
+      deal_components: [],
     });
   };
 
@@ -198,6 +266,7 @@ export default function MenuManagement() {
                         <span className={`badge ${item.is_available ? 'badge-success' : 'badge-error'}`}>
                           {item.is_available ? 'Available' : 'Unavailable'}
                         </span>
+                        {item.is_deal && <span className="badge badge-warning">🎁 Deal</span>}
                         {item.is_vegetarian && <span className="badge badge-success">🌱 Veg</span>}
                         {item.is_vegan && <span className="badge badge-success">🥬 Vegan</span>}
                         {item.preparation_time && (
@@ -241,8 +310,8 @@ export default function MenuManagement() {
         {/* Add/Edit Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-2xl w-full p-8">
-              <h2 className="text-2xl font-bold mb-6">{formData.id ? 'Edit' : 'Add'} Menu Item</h2>
+            <div className="bg-white rounded-xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold mb-6">{formData.id ? 'Edit' : 'Add'} {formData.is_deal ? 'Deal/Combo' : 'Menu Item'}</h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -444,9 +513,130 @@ export default function MenuManagement() {
                   </div>
                 </div>
 
+                {/* ── Deal / Combo Toggle ──────────────────────────────── */}
+                <div className="border-t pt-4">
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={formData.is_deal}
+                        onChange={e => {
+                          const on = e.target.checked;
+                          setFormData({ ...formData, is_deal: on,
+                            deal_components: on && (!formData.deal_components || !formData.deal_components.length)
+                              ? [{ step: 1, label: '', qty: 1, type: 'category', value: 'main_course' }]
+                              : formData.deal_components
+                          });
+                        }}
+                      />
+                      <div className={`w-11 h-6 rounded-full transition-colors ${formData.is_deal ? 'bg-blue-600' : 'bg-gray-300'}`} />
+                      <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${formData.is_deal ? 'translate-x-5' : ''}`} />
+                    </div>
+                    <span className="font-semibold text-gray-800 flex items-center gap-2">
+                      <FiTag /> This is a Meal Deal / Combo
+                    </span>
+                    {formData.is_deal && <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Price above = deal price</span>}
+                  </label>
+
+                  {formData.is_deal && (
+                    <div className="mt-4 space-y-3">
+                      <p className="text-sm text-gray-500">
+                        Define each step a customer must complete. For each step, choose items from a <strong>category</strong> or pick <strong>specific items</strong>.
+                      </p>
+                      {(formData.deal_components || []).map((step, idx) => (
+                        <div key={idx} className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-blue-800 text-sm">Step {step.step}</span>
+                            <button type="button" onClick={() => removeDealStep(idx)} className="text-red-500 hover:text-red-700">
+                              <FiX />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs text-gray-600 block mb-1">Step Label</label>
+                              <input
+                                className="input-field text-sm"
+                                placeholder="e.g. Choose your Main"
+                                value={step.label}
+                                onChange={e => updateDealStep(idx, 'label', e.target.value)}
+                                required={formData.is_deal}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-600 block mb-1">Qty to pick</label>
+                              <input
+                                type="number"
+                                min="1"
+                                max="10"
+                                className="input-field text-sm"
+                                value={step.qty}
+                                onChange={e => updateDealStep(idx, 'qty', parseInt(e.target.value) || 1)}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 block mb-1">Choose from</label>
+                            <div className="flex gap-3">
+                              <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                                <input type="radio" checked={step.type === 'category'} onChange={() => updateDealStep(idx, 'type', 'category')} />
+                                Category
+                              </label>
+                              <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+                                <input type="radio" checked={step.type === 'items'} onChange={() => updateDealStep(idx, 'type', 'items')} />
+                                Specific Items
+                              </label>
+                            </div>
+                          </div>
+                          {step.type === 'category' ? (
+                            <div>
+                              <label className="text-xs text-gray-600 block mb-1">Category</label>
+                              <select
+                                className="input-field text-sm"
+                                value={step.value}
+                                onChange={e => updateDealStep(idx, 'value', e.target.value)}
+                              >
+                                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                              </select>
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="text-xs text-gray-600 block mb-1">
+                                Select items ({Array.isArray(step.value) ? step.value.length : 0} selected)
+                              </label>
+                              <div className="grid grid-cols-2 gap-1 max-h-36 overflow-y-auto border border-blue-200 rounded-lg p-2 bg-white">
+                                {menuItemsList.length === 0
+                                  ? <p className="text-xs text-gray-400 col-span-2">No non-deal items available</p>
+                                  : menuItemsList.map(mi => (
+                                    <label key={mi.id} className="flex items-center gap-1.5 text-xs cursor-pointer hover:bg-blue-50 rounded p-1">
+                                      <input
+                                        type="checkbox"
+                                        checked={Array.isArray(step.value) && step.value.includes(mi.id)}
+                                        onChange={() => toggleDealItem(idx, mi.id)}
+                                      />
+                                      {mi.name}
+                                    </label>
+                                  ))
+                                }
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addDealStep}
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium border border-blue-300 rounded-lg px-4 py-2 hover:bg-blue-50 w-full justify-center"
+                      >
+                        <FiPlus /> Add Step
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-4 pt-4">
                   <button type="submit" className="btn-primary flex-1">
-                    {formData.id ? 'Update' : 'Add'} Item
+                    {formData.id ? 'Update' : 'Add'} {formData.is_deal ? 'Deal' : 'Item'}
                   </button>
                   <button
                     type="button"
