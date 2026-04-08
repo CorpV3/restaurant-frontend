@@ -45,6 +45,7 @@ import StaffDashboard from './pages/Staff/StaffDashboard';
 import MasterAdminDashboard from './pages/MasterAdmin/MasterAdminDashboard';
 import UserManagement from './pages/MasterAdmin/UserManagement';
 import PartnerApproval from './pages/MasterAdmin/PartnerApproval';
+import SupportPage from './pages/MasterAdmin/SupportPage';
 
 // Partner Pages
 import PartnerLogin from './pages/Partner/PartnerLogin';
@@ -289,6 +290,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['master_admin']}>
               <PartnerApproval />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/master-admin/support"
+          element={
+            <ProtectedRoute allowedRoles={['master_admin']}>
+              <SupportPage />
             </ProtectedRoute>
           }
         />

@@ -262,3 +262,14 @@ export const orderAPI = {
   getReports: (restaurantId, params) =>
     restaurantApi.get(`/api/v1/restaurants/${restaurantId}/analytics/reports`, { params }),
 };
+
+// System API — announcements + app versions (Master Admin)
+export const systemAPI = {
+  getAnnouncements: (activeOnly = false) => restaurantApi.get(`/api/v1/system/announcements?active_only=${activeOnly}`),
+  createAnnouncement: (data) => restaurantApi.post('/api/v1/system/announcements', data),
+  toggleAnnouncement: (id, data) => restaurantApi.patch(`/api/v1/system/announcements/${id}`, data),
+  deleteAnnouncement: (id) => restaurantApi.delete(`/api/v1/system/announcements/${id}`),
+  getAppVersions: () => restaurantApi.get('/api/v1/system/app-versions'),
+  getAppVersion: (platform) => restaurantApi.get(`/api/v1/system/app-versions/${platform}`),
+  saveAppVersion: (platform, data) => restaurantApi.put(`/api/v1/system/app-versions/${platform}`, data),
+};

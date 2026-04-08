@@ -315,7 +315,7 @@ export default function MasterAdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <button
             onClick={() => navigate('/master-admin/users')}
             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-lg p-8 transition-all transform hover:scale-105"
@@ -332,6 +332,15 @@ export default function MasterAdminDashboard() {
             <FiPlus className="text-5xl mb-4" />
             <h3 className="text-2xl font-bold mb-2">Create Restaurant</h3>
             <p className="text-green-100">Add a new restaurant to the system</p>
+          </button>
+
+          <button
+            onClick={() => navigate('/master-admin/support')}
+            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-xl shadow-lg p-8 transition-all transform hover:scale-105"
+          >
+            <span className="text-5xl mb-4 block">📢</span>
+            <h3 className="text-2xl font-bold mb-2">Support & App</h3>
+            <p className="text-purple-100">Manage news ticker, app versions and download links</p>
           </button>
         </div>
 
