@@ -17,6 +17,7 @@ import OrderTrackingPage from './pages/Customer/OrderTrackingPage';
 
 // Public Pages (No Auth Required)
 import PublicMenu from './pages/Public/PublicMenu';
+import SumUpPayPage from './pages/SumUpPayPage';
 
 // Restaurant Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -120,6 +121,8 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/pay/:checkoutId" element={<SumUpPayPage />} />
+        <Route path="/pay" element={<SumUpPayPage />} />
 
         {/* Partner Routes */}
         <Route path="/partner/login" element={<PartnerLogin />} />
