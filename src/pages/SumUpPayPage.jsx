@@ -1,21 +1,37 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
-/**
- * Hosted SumUp payment page.
- * URL: /pay/:checkoutId  OR  /pay?checkout_id=xxx
- *
- * Loads SumUp's JS widget so the customer can enter card details.
- * Works on any browser / mobile phone — no SumUp app required.
- */
 export default function SumUpPayPage() {
   const { checkoutId: paramId } = useParams();
   const [searchParams] = useSearchParams();
   const checkoutId = paramId || searchParams.get('checkout_id');
 
   const mountRef = useRef(false);
-  const [status, setStatus] = useState('loading'); // loading | ready | paid | failed | error
+  const pollRef = useRef(null);
+  const [status, setStatus] = useState('loading'); // loading | ready | verifying | paid | failed | error
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Poll our payment-service for real status
+  const pollStatus = useCallback(() => {
+    let attempts = 0;
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      try {
+        const res = await fetch(`/api/v1/payments/sumup/checkout/${checkoutId}/status`);
+        const data = await res.json();
+        if (data.paid || data.status === 'PAID') {
+          clearInterval(pollRef.current);
+          setStatus('paid');
+        } else if (data.status === 'FAILED' || attempts >= 10) {
+          clearInterval(pollRef.current);
+          setErrorMsg('Payment was not completed. Please try again.');
+          setStatus('failed');
+        }
+      } catch {
+        // keep polling
+      }
+    }, 2000);
+  }, [checkoutId]);
 
   useEffect(() => {
     if (!checkoutId || mountRef.current) return;
@@ -33,18 +49,18 @@ export default function SumUpPayPage() {
           showInstallments: false,
           onResponse: (type, body) => {
             if (type === 'sent') {
-              setStatus('paid');
+              // Widget submitted — now poll the API for real result
+              setStatus('verifying');
+              pollStatus();
             } else if (type === 'error') {
               setErrorMsg(body?.message || 'Payment failed');
               setStatus('failed');
             }
           },
-          onLoad: () => {
-            setStatus('ready');
-          },
+          onLoad: () => setStatus('ready'),
         });
         mountRef.current = true;
-      } catch (e) {
+      } catch {
         setErrorMsg('Could not load payment widget');
         setStatus('error');
       }
@@ -56,9 +72,10 @@ export default function SumUpPayPage() {
     document.head.appendChild(script);
 
     return () => {
-      document.head.removeChild(script);
+      if (pollRef.current) clearInterval(pollRef.current);
+      try { document.head.removeChild(script); } catch {}
     };
-  }, [checkoutId]);
+  }, [checkoutId, pollStatus]);
 
   if (!checkoutId) {
     return (
@@ -82,38 +99,47 @@ export default function SumUpPayPage() {
         <p className="text-gray-400 text-sm mt-1">Powered by SumUp</p>
       </div>
 
-      {/* Widget container */}
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden min-h-[200px]">
+      {/* Widget — hide when verifying/paid/failed */}
+      <div className={`w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden min-h-[200px] ${['paid','failed','error','verifying'].includes(status) ? 'hidden' : ''}`}>
         {status === 'loading' && (
           <div className="flex items-center justify-center h-40">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
-        <div id="sumup-card-container" className={status === 'loading' ? 'hidden' : ''} />
+        <div id="sumup-card-container" />
       </div>
 
-      {/* Paid state */}
-      {status === 'paid' && (
-        <div className="mt-6 text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
-            <span className="text-white text-3xl">✓</span>
-          </div>
-          <p className="text-green-400 text-xl font-bold">Payment successful!</p>
-          <p className="text-gray-400 text-sm mt-1">You can close this page.</p>
+      {/* Verifying */}
+      {status === 'verifying' && (
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-white font-medium text-lg">Verifying payment...</p>
+          <p className="text-gray-400 text-sm">Please wait</p>
         </div>
       )}
 
-      {/* Error / failed state */}
+      {/* Paid */}
+      {status === 'paid' && (
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto">
+            <span className="text-white text-3xl">✓</span>
+          </div>
+          <p className="text-green-400 text-xl font-bold">Payment successful!</p>
+          <p className="text-gray-400 text-sm">You can close this page.</p>
+        </div>
+      )}
+
+      {/* Failed / Error */}
       {(status === 'failed' || status === 'error') && (
-        <div className="mt-6 text-center max-w-sm">
-          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+        <div className="text-center max-w-sm space-y-3">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto">
             <span className="text-white text-3xl">✕</span>
           </div>
           <p className="text-red-400 text-xl font-bold">Payment failed</p>
-          <p className="text-gray-400 text-sm mt-2">{errorMsg}</p>
+          <p className="text-gray-400 text-sm">{errorMsg}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
           >
             Try again
           </button>
