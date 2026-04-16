@@ -82,6 +82,19 @@ const addInterceptors = (instance) => {
 addInterceptors(authApi);
 addInterceptors(restaurantApi);
 
+// Partner API instances — use partner_token when present, fallback to access_token
+const partnerAuthApiInstance = axios.create({ baseURL: AUTH_SERVICE_URL, headers: { 'Content-Type': 'application/json' } });
+const partnerRestApiInstance = axios.create({ baseURL: RESTAURANT_SERVICE_URL, headers: { 'Content-Type': 'application/json' } });
+
+[partnerAuthApiInstance, partnerRestApiInstance].forEach(instance => {
+  instance.interceptors.request.use((config) => {
+    const token = localStorage.getItem('partner_token') || localStorage.getItem('access_token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  }, (error) => Promise.reject(error));
+  instance.interceptors.response.use(r => r, err => Promise.reject(err));
+});
+
 // Export default as auth API for backwards compatibility
 export default authApi;
 
@@ -183,6 +196,59 @@ export const feedbackAPI = {
   getSummary: (restaurantId, days) => restaurantApi.get(`/api/v1/restaurants/${restaurantId}/feedback/stats/summary`, { params: { days } }),
 };
 
+// Delivery Integration API - uses Integration Service (via api-gateway)
+export const integrationAPI = {
+  list: (restaurantId) => restaurantApi.get(`/api/v1/delivery-integrations/${restaurantId}`),
+  upsert: (data) => restaurantApi.post('/api/v1/delivery-integrations', data),
+  remove: (integrationId) => restaurantApi.delete(`/api/v1/delivery-integrations/${integrationId}`),
+  toggle: (integrationId) => restaurantApi.patch(`/api/v1/delivery-integrations/${integrationId}/toggle`),
+};
+
+// Inventory API - uses Restaurant Service
+export const inventoryAPI = {
+  // Ingredients
+  listItems: (rid, params) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/items`, { params }),
+  createItem: (rid, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/items`, data),
+  updateItem: (rid, id, data) => restaurantApi.patch(`/api/v1/restaurants/${rid}/inventory/items/${id}`, data),
+  deleteItem: (rid, id) => restaurantApi.delete(`/api/v1/restaurants/${rid}/inventory/items/${id}`),
+  adjustStock: (rid, id, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/items/${id}/adjust`, data),
+  // Prepared food
+  listPrepared: (rid, params) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/prepared`, { params }),
+  createPrepared: (rid, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/prepared`, data),
+  updatePrepared: (rid, id, data) => restaurantApi.patch(`/api/v1/restaurants/${rid}/inventory/prepared/${id}`, data),
+  deletePrepared: (rid, id) => restaurantApi.delete(`/api/v1/restaurants/${rid}/inventory/prepared/${id}`),
+  convertToOffer: (rid, id, discount, offerPrice) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/prepared/${id}/offer`, null, { params: { ...(discount != null && { discount }), ...(offerPrice != null && { offer_price: offerPrice }) } }),
+  // Recipes
+  listRecipes: (rid, params) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/recipes`, { params }),
+  createRecipe: (rid, data) => restaurantApi.post(`/api/v1/restaurants/${rid}/inventory/recipes`, data),
+  deleteRecipe: (rid, id) => restaurantApi.delete(`/api/v1/restaurants/${rid}/inventory/recipes/${id}`),
+  // Alerts
+  getAlerts: (rid) => restaurantApi.get(`/api/v1/restaurants/${rid}/inventory/alerts`),
+};
+
+// Partner Auth API - uses Auth Service (partner_token or admin access_token)
+export const partnerAuthAPI = {
+  signup: (data) => partnerAuthApiInstance.post('/api/v1/partners/signup', data),
+  login: (data) => partnerAuthApiInstance.post('/api/v1/partners/login', data),
+  getMe: () => partnerAuthApiInstance.get('/api/v1/partners/me'),
+  updateMe: (data) => partnerAuthApiInstance.patch('/api/v1/partners/me', data),
+  // Admin (uses admin access_token)
+  listPartners: (approved) => authApi.get('/api/v1/partners/admin/list', { params: approved != null ? { approved } : {} }),
+  approvePartner: (id) => authApi.patch(`/api/v1/partners/admin/${id}/approve`),
+  rejectPartner: (id) => authApi.patch(`/api/v1/partners/admin/${id}/reject`),
+  updateCommission: (id, data) => authApi.patch(`/api/v1/partners/admin/${id}/commission`, data),
+};
+
+// Partner Commission & Invoice API - uses Restaurant Service (partner_token or admin access_token)
+export const partnerAPI = {
+  getDashboard: (partnerId) => partnerRestApiInstance.get(`/api/v1/partners/${partnerId}/dashboard`),
+  getRestaurants: (partnerId) => partnerRestApiInstance.get(`/api/v1/partners/${partnerId}/restaurants`),
+  generateInvoice: (partnerId, data) => restaurantApi.post(`/api/v1/partners/${partnerId}/invoices/generate`, data),
+  listInvoices: (partnerId) => partnerRestApiInstance.get(`/api/v1/partners/${partnerId}/invoices`),
+  getInvoice: (partnerId, invoiceId) => partnerRestApiInstance.get(`/api/v1/partners/${partnerId}/invoices/${invoiceId}`),
+  markPaid: (partnerId, invoiceId) => restaurantApi.patch(`/api/v1/partners/${partnerId}/invoices/${invoiceId}/mark-paid`),
+};
+
 // Order API - uses Restaurant Service
 export const orderAPI = {
   list: (restaurantId, params) => restaurantApi.get(`/api/v1/restaurants/${restaurantId}/orders`, { params }),
@@ -195,4 +261,15 @@ export const orderAPI = {
   generateReceipt: (orderId) => restaurantApi.post(`/api/v1/orders/${orderId}/generate-receipt`),
   getReports: (restaurantId, params) =>
     restaurantApi.get(`/api/v1/restaurants/${restaurantId}/analytics/reports`, { params }),
+};
+
+// System API — announcements + app versions (Master Admin)
+export const systemAPI = {
+  getAnnouncements: (activeOnly = false) => restaurantApi.get(`/api/v1/system/announcements?active_only=${activeOnly}`),
+  createAnnouncement: (data) => restaurantApi.post('/api/v1/system/announcements', data),
+  toggleAnnouncement: (id, data) => restaurantApi.patch(`/api/v1/system/announcements/${id}`, data),
+  deleteAnnouncement: (id) => restaurantApi.delete(`/api/v1/system/announcements/${id}`),
+  getAppVersions: () => restaurantApi.get('/api/v1/system/app-versions'),
+  getAppVersion: (platform) => restaurantApi.get(`/api/v1/system/app-versions/${platform}`),
+  saveAppVersion: (platform, data) => restaurantApi.put(`/api/v1/system/app-versions/${platform}`, data),
 };

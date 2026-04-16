@@ -18,6 +18,7 @@ export default function StaffManagement() {
     email: '',
     password: '',
     full_name: '',
+    pos_passcode: '',
   });
 
   useEffect(() => {
@@ -52,6 +53,10 @@ export default function StaffManagement() {
         // Only include password if it's provided
         if (formData.password) {
           updateData.password = formData.password;
+        }
+        // Only include pos_passcode if provided (must be exactly 4 digits)
+        if (formData.pos_passcode) {
+          updateData.pos_passcode = formData.pos_passcode;
         }
 
         await staffAPI.updateStaff(editingStaff.id, updateData);
@@ -90,8 +95,9 @@ export default function StaffManagement() {
     setFormData({
       username: staffMember.username,
       email: staffMember.email || '',
-      password: '', // Leave empty, only update if provided
+      password: '',
       full_name: staffMember.full_name || '',
+      pos_passcode: '',
     });
     setStaffType(staffMember.role?.toLowerCase() || 'chef');
     setShowModal(true);
@@ -138,6 +144,7 @@ export default function StaffManagement() {
       email: '',
       password: '',
       full_name: '',
+      pos_passcode: '',
     });
   };
 
@@ -413,9 +420,31 @@ export default function StaffManagement() {
                   </p>
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    POS Passcode {editingStaff && '(leave empty to keep current)'}
+                  </label>
+                  <input
+                    type="password"
+                    className="input-field"
+                    value={formData.pos_passcode}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                      setFormData({ ...formData, pos_passcode: val });
+                    }}
+                    maxLength={4}
+                    placeholder="4-digit PIN"
+                    pattern="\d{4}"
+                    inputMode="numeric"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    4-digit PIN for quick POS login. Leave empty to disable POS login for this user.
+                  </p>
+                </div>
+
                 <div className="flex gap-4 pt-4">
                   <button type="submit" className="btn-primary flex-1">
-                    {editingStaff ? 'Update Staff' : `Create ${staffType === 'chef' ? 'Chef' : 'Customer'}`}
+                    {editingStaff ? 'Update Staff' : `Create ${staffType === 'chef' ? 'Chef' : 'Staff'}`}
                   </button>
                   <button
                     type="button"

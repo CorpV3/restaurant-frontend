@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiPackage, FiGrid, FiMessageSquare, FiLogOut, FiMenu, FiX, FiUsers, FiBarChart2, FiTrendingUp, FiUserCheck, FiTruck, FiCreditCard } from 'react-icons/fi';
+import { FiHome, FiPackage, FiGrid, FiMessageSquare, FiLogOut, FiMenu, FiX, FiUsers, FiBarChart2, FiTrendingUp, FiUserCheck, FiTruck, FiArchive, FiCreditCard } from 'react-icons/fi';
 import useAuthStore from '../../store/authStore';
 
 export default function DashboardLayout({ children }) {
@@ -21,10 +21,11 @@ export default function DashboardLayout({ children }) {
     { path: '/admin/tables', icon: FiGrid, label: 'Tables' },
     { path: '/admin/staff', icon: FiUsers, label: 'Staff' },
     { path: '/admin/feedback', icon: FiMessageSquare, label: 'Feedback' },
+    { path: '/admin/inventory', icon: FiArchive, label: 'Inventory' },
     { path: '/admin/analytics', icon: FiBarChart2, label: 'Analytics' },
     { path: '/admin/predictions', icon: FiTrendingUp, label: 'Predictions' },
     { path: '/admin/customer-insights', icon: FiUserCheck, label: 'Customer Insights' },
-    { path: '/admin/delivery', icon: FiTruck, label: 'Delivery' },
+    { path: '/admin/delivery-integration', icon: FiTruck, label: 'Delivery Integration' },
     { path: '/admin/payment', icon: FiCreditCard, label: 'Payment' },
   ];
 
