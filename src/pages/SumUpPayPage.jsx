@@ -12,23 +12,30 @@ export default function SumUpPayPage() {
   const [errorMsg, setErrorMsg] = useState('');
 
   // Poll our payment-service for real status
+  // 30 attempts × 2s = 60 second window (SumUp can take 30-60s to confirm)
   const pollStatus = useCallback(() => {
     let attempts = 0;
+    const MAX_ATTEMPTS = 30;
     pollRef.current = setInterval(async () => {
       attempts++;
       try {
         const res = await fetch(`/api/v1/payments/sumup/checkout/${checkoutId}/status`);
+        if (!res.ok) return; // non-200 — keep polling
         const data = await res.json();
         if (data.paid || data.status === 'PAID') {
           clearInterval(pollRef.current);
           setStatus('paid');
-        } else if (data.status === 'FAILED' || attempts >= 10) {
+        } else if (data.status === 'FAILED') {
           clearInterval(pollRef.current);
-          setErrorMsg('Payment was not completed. Please try again.');
+          setErrorMsg('Payment was declined. Please try a different card.');
+          setStatus('failed');
+        } else if (attempts >= MAX_ATTEMPTS) {
+          clearInterval(pollRef.current);
+          setErrorMsg('Payment confirmation timed out. Check with staff if the amount was charged.');
           setStatus('failed');
         }
       } catch {
-        // keep polling
+        // Network error — keep polling
       }
     }, 2000);
   }, [checkoutId]);
