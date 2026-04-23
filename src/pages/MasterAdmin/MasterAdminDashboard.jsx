@@ -60,6 +60,9 @@ export default function MasterAdminDashboard() {
     vat_enabled: true,
     vat_rate: 20.0,
     vat_number: '',
+    chef_display_enabled: true,
+    auto_print_enabled: false,
+    auto_print_copies: 1,
   });
 
   useEffect(() => {
@@ -118,6 +121,9 @@ export default function MasterAdminDashboard() {
       vat_enabled: true,
       vat_rate: 20.0,
       vat_number: '',
+      chef_display_enabled: true,
+      auto_print_enabled: false,
+      auto_print_copies: 1,
     });
     setShowModal(true);
   };
@@ -148,6 +154,9 @@ export default function MasterAdminDashboard() {
       vat_enabled: restaurant.vat_enabled ?? true,
       vat_rate: restaurant.vat_rate ?? 20.0,
       vat_number: restaurant.vat_number || '',
+      chef_display_enabled: restaurant.chef_display_enabled ?? true,
+      auto_print_enabled: restaurant.auto_print_enabled ?? false,
+      auto_print_copies: restaurant.auto_print_copies ?? 1,
     });
     setShowModal(true);
   };
@@ -721,6 +730,49 @@ export default function MasterAdminDashboard() {
                       <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 ml-7">
                         VAT will not be charged or shown on receipts
                       </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* POS Features */}
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">POS Features</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="chef_display_enabled_master"
+                        checked={formData.chef_display_enabled ?? true}
+                        onChange={(e) => setFormData({ ...formData, chef_display_enabled: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="chef_display_enabled_master" className="text-sm font-medium text-gray-700">
+                        Chef Display (KDS) — kitchen order screen visible in POS
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="auto_print_enabled_master"
+                        checked={formData.auto_print_enabled ?? false}
+                        onChange={(e) => setFormData({ ...formData, auto_print_enabled: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="auto_print_enabled_master" className="text-sm font-medium text-gray-700">
+                        Auto-print — print kitchen ticket automatically on new order
+                      </label>
+                    </div>
+                    {formData.auto_print_enabled && (
+                      <div className="pl-6">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Default print copies</label>
+                        <input
+                          type="number"
+                          value={formData.auto_print_copies ?? 1}
+                          onChange={(e) => setFormData({ ...formData, auto_print_copies: parseInt(e.target.value) || 1 })}
+                          min="1" max="10"
+                          className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
