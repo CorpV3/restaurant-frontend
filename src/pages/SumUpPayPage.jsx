@@ -80,7 +80,7 @@ export default function SumUpPayPage() {
 
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
-      try { document.head.removeChild(script); } catch {}
+      try { document.head.removeChild(script); } catch (_e) { /* ignore */ }
     };
   }, [checkoutId, pollStatus]);
 
