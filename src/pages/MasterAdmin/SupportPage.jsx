@@ -14,12 +14,13 @@ export default function SupportPage() {
   const [posting, setPosting] = useState(false);
 
   // App versions
-  const [versions, setVersions] = useState({ windows: null, android: null });
+  const [versions, setVersions] = useState({ windows: null, android: null, ios: null });
   const [versionForms, setVersionForms] = useState({
     windows: { version_string: '', download_url: '', release_notes: '' },
     android: { version_string: '', download_url: '', release_notes: '' },
+    ios:     { version_string: '', download_url: '', release_notes: '' },
   });
-  const [savingVersion, setSavingVersion] = useState({ windows: false, android: false });
+  const [savingVersion, setSavingVersion] = useState({ windows: false, android: false, ios: false });
 
   useEffect(() => {
     fetchAnnouncements();
@@ -36,10 +37,10 @@ export default function SupportPage() {
   const fetchVersions = async () => {
     try {
       const res = await systemAPI.getAppVersions();
-      const map = { windows: null, android: null };
+      const map = { windows: null, android: null, ios: null };
       res.data.forEach(v => { map[v.platform] = v; });
       setVersions(map);
-      ['windows', 'android'].forEach(p => {
+      ['windows', 'android', 'ios'].forEach(p => {
         if (map[p]) {
           setVersionForms(prev => ({
             ...prev,
@@ -95,7 +96,8 @@ export default function SupportPage() {
         download_url: form.download_url.trim(),
         release_notes: form.release_notes.trim() || null,
       });
-      toast.success(`${platform === 'windows' ? 'Windows' : 'Android'} version updated`);
+      const cfg = platformConfig[platform];
+      toast.success(`${cfg.label} version updated`);
       fetchVersions();
     } catch { toast.error('Failed to save version'); }
     setSavingVersion(prev => ({ ...prev, [platform]: false }));
@@ -104,6 +106,7 @@ export default function SupportPage() {
   const platformConfig = {
     windows: { label: 'Windows', icon: '🖥️', hint: 'Direct link to .exe installer' },
     android: { label: 'Android', icon: '📱', hint: 'Direct link to .apk file' },
+    ios:     { label: 'iOS / iPad', icon: '🍎', hint: 'Direct link to .ipa file (sideload via AltStore)' },
   };
 
   return (
@@ -209,8 +212,8 @@ export default function SupportPage() {
             Set the latest version and download link for each platform. The POS app checks this on startup and shows an "Update Available" banner if the installed version is older.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(['windows', 'android']).map(platform => {
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {(['windows', 'android', 'ios']).map(platform => {
               const cfg = platformConfig[platform];
               const current = versions[platform];
               const form = versionForms[platform];
@@ -289,8 +292,8 @@ export default function SupportPage() {
         {/* ── Quick Download Links ───────────────────────────────────── */}
         <div className="bg-white rounded-xl shadow-sm border p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">⬇️ App Download Links</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(['windows', 'android']).map(platform => {
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(['windows', 'android', 'ios']).map(platform => {
               const cfg = platformConfig[platform];
               const current = versions[platform];
               return (
