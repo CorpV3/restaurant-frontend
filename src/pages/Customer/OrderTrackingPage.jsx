@@ -140,11 +140,11 @@ export default function OrderTrackingPage() {
     );
   }
 
-  const isActive   = !['completed', 'cancelled'].includes(order.status);
-  const isServed   = order.status === 'served';
-  const isComplete = order.status === 'completed';
+  const isActive    = !['completed', 'cancelled'].includes(order.status);
+  const isComplete  = order.status === 'completed';
   const isCancelled = order.status === 'cancelled';
-  const canRequestBill = isServed;
+  // Bill can be requested any time the order is active (not yet paid)
+  const canRequestBill = isActive;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-10">
