@@ -6,6 +6,18 @@ import toast from 'react-hot-toast';
 
 const PROVIDERS = [
   {
+    key: 'manual',
+    name: 'Manual Card',
+    description: 'Staff process payment on their own card machine and confirm manually',
+    color: 'bg-green-600',
+    textColor: 'text-white',
+    borderColor: 'border-green-500',
+    enabledKey: 'manual_card_enabled',
+    fields: [],
+    helpText: 'When enabled, staff see a "Manual Card" option in the payment screen. They charge the customer on their standalone card machine, then tap "Paid ✓" to confirm.',
+    docsUrl: null,
+  },
+  {
     key: 'tripos',
     name: 'Worldpay triPOS',
     description: 'Physical card terminal (chip & tap)',
@@ -62,6 +74,7 @@ const PROVIDERS = [
 ];
 
 const EMPTY_FORM = {
+  manual_card_enabled: false,
   tripos_enabled: false,
   tripos_acceptor_id: '',
   tripos_account_id: '',
@@ -90,6 +103,7 @@ export default function PaymentIntegration() {
     try {
       const res = await restaurantAPI.get(user.restaurant_id);
       setForm({
+        manual_card_enabled: res.data.manual_card_enabled || false,
         tripos_enabled: res.data.tripos_enabled || false,
         tripos_acceptor_id: res.data.tripos_acceptor_id || '',
         tripos_account_id: res.data.tripos_account_id || '',
@@ -238,14 +252,16 @@ export default function PaymentIntegration() {
 
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-xs text-gray-500">{provider.helpText}</p>
-                      <a
-                        href={provider.docsUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-blue-600 hover:underline mt-1 inline-block"
-                      >
-                        View {provider.name} Docs →
-                      </a>
+                      {provider.docsUrl && (
+                        <a
+                          href={provider.docsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                        >
+                          View {provider.name} Docs →
+                        </a>
+                      )}
                     </div>
                   </div>
                 )}

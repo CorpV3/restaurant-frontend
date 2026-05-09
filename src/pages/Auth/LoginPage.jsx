@@ -21,7 +21,7 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🍽️ Restaurant Manager</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Nexserv</h1>
           <p className="text-blue-100">Manage your restaurant with ease</p>
         </div>
 
@@ -112,7 +112,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-white text-sm mt-8">
-          © 2025 Restaurant Management System
+          © 2025 Nexserv
         </p>
       </div>
     </div>

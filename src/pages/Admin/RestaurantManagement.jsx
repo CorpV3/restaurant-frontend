@@ -342,6 +342,49 @@ export default function RestaurantManagement() {
                   </div>
                 </div>
 
+                {/* POS Features */}
+                <div className="pt-6 border-t">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">POS Features</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="chef_display_enabled_create"
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        checked={formData.chef_display_enabled ?? true}
+                        onChange={(e) => setFormData({ ...formData, chef_display_enabled: e.target.checked })}
+                      />
+                      <label htmlFor="chef_display_enabled_create" className="text-sm font-medium text-gray-700">
+                        Chef Display (KDS) — show kitchen order screen in POS app
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="auto_print_enabled_create"
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        checked={formData.auto_print_enabled ?? false}
+                        onChange={(e) => setFormData({ ...formData, auto_print_enabled: e.target.checked })}
+                      />
+                      <label htmlFor="auto_print_enabled_create" className="text-sm font-medium text-gray-700">
+                        Auto-print — automatically print kitchen ticket when new order arrives
+                      </label>
+                    </div>
+                    {formData.auto_print_enabled && (
+                      <div className="pl-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Default print copies</label>
+                        <input
+                          type="number"
+                          className="input-field w-24"
+                          value={formData.auto_print_copies ?? 1}
+                          onChange={(e) => setFormData({ ...formData, auto_print_copies: parseInt(e.target.value) || 1 })}
+                          min="1" max="10"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex gap-4 pt-6 border-t">
                   <button type="submit" className="btn-primary flex-1 px-6 py-3 text-lg">
                     Create Restaurant
@@ -601,6 +644,52 @@ export default function RestaurantManagement() {
                   <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 ml-7">
                     VAT will not be charged or shown on receipts
                   </p>
+                )}
+              </div>
+            </div>
+
+            {/* POS Features */}
+            <div className="pt-6 border-t">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">POS Features</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="chef_display_enabled_edit"
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    checked={formData.chef_display_enabled ?? true}
+                    onChange={(e) => setFormData({ ...formData, chef_display_enabled: e.target.checked })}
+                    disabled={!editing}
+                  />
+                  <label htmlFor="chef_display_enabled_edit" className="text-sm font-medium text-gray-700">
+                    Chef Display (KDS) — show kitchen order screen in POS app
+                  </label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="auto_print_enabled_edit"
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    checked={formData.auto_print_enabled ?? false}
+                    onChange={(e) => setFormData({ ...formData, auto_print_enabled: e.target.checked })}
+                    disabled={!editing}
+                  />
+                  <label htmlFor="auto_print_enabled_edit" className="text-sm font-medium text-gray-700">
+                    Auto-print — automatically print kitchen ticket when new order arrives
+                  </label>
+                </div>
+                {(formData.auto_print_enabled ?? false) && (
+                  <div className="pl-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Default print copies</label>
+                    <input
+                      type="number"
+                      className="input-field w-24"
+                      value={formData.auto_print_copies ?? 1}
+                      onChange={(e) => setFormData({ ...formData, auto_print_copies: parseInt(e.target.value) || 1 })}
+                      min="1" max="10"
+                      disabled={!editing}
+                    />
+                  </div>
                 )}
               </div>
             </div>
