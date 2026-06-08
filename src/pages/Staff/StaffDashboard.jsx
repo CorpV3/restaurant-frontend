@@ -132,8 +132,8 @@ function OrderCard({ order, onServe, onComplete, highlight, isNew }) {
       <div className="mb-3 space-y-1">
         {order.items?.slice(0, 4).map((item, idx) => (
           <div key={idx} className="flex justify-between text-sm gap-2">
-            <span className="text-gray-700 truncate">{item.quantity}x {item.name || item.menu_item_name}</span>
-            <span className="text-gray-500 shrink-0">£{(item.price * item.quantity).toFixed(2)}</span>
+            <span className="text-gray-700 truncate">{item.quantity}x {item.name || item.menu_item_name || item.item_name}</span>
+            <span className="text-gray-500 shrink-0">£{((item.price || item.item_price || 0) * item.quantity).toFixed(2)}</span>
           </div>
         ))}
         {order.items?.length > 4 && (
