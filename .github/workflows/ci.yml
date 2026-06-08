@@ -83,6 +83,7 @@ jobs:
           repository: ${{ github.repository_owner }}/restaurant-infrastructure
           token: ${{ secrets.GH_PAT }}
           path: infrastructure
+          ref: develop
 
       - name: Install yq
         run: |
@@ -99,7 +100,6 @@ jobs:
           cd infrastructure
           git config user.name "shadrach"
           git config user.email "shadrachdoc@gmail.com"
-          git checkout develop
           git pull --rebase origin develop || true
           git add .
           git diff --staged --quiet || git commit -m "Test deploy ${{ env.SERVICE_NAME }}: ${{ needs.build-and-push.outputs.short_sha }}"
