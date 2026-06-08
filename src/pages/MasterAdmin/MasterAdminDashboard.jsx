@@ -179,6 +179,7 @@ export default function MasterAdminDashboard() {
     e.preventDefault();
     const payload = {
       ...formData,
+      website: formData.website || null,
       partner_id: formData.partner_id || null,
       commission_type: formData.partner_id ? formData.commission_type : null,
       commission_value: formData.partner_id ? parseFloat(formData.commission_value) : null,
@@ -195,7 +196,11 @@ export default function MasterAdminDashboard() {
       setShowModal(false);
       fetchRestaurants();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to save restaurant');
+      const detail = error.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map(d => d.msg).join(', ')
+        : (detail || 'Failed to save restaurant');
+      toast.error(msg);
     }
   };
 
