@@ -68,7 +68,10 @@ export default function MenuManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let finalFormData = { ...formData };
+      let finalFormData = {
+        ...formData,
+        image_url: formData.image_url || null,
+      };
 
       // Validate deal steps
       if (finalFormData.is_deal) {
