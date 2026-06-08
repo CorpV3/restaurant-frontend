@@ -71,6 +71,9 @@ export default function MenuManagement() {
       let finalFormData = {
         ...formData,
         image_url: formData.image_url || null,
+        preparation_time: formData.preparation_time === '' || formData.preparation_time === null
+          ? null
+          : Number(formData.preparation_time),
       };
 
       // Validate deal steps
